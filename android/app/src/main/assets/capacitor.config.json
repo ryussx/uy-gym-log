@@ -1,0 +1,10 @@
+{
+	"appId": "com.uy.gymlog",
+	"appName": "UY Gym Log",
+	"webDir": "www",
+	"plugins": {
+		"LocalNotifications": {
+			"iconColor": "#ff3b1f"
+		}
+	}
+}

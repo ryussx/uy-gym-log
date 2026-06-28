@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">UY Gym Log</string>
+    <string name="title_activity_main">UY Gym Log</string>
+    <string name="package_name">com.uy.gymlog</string>
+    <string name="custom_url_scheme">com.uy.gymlog</string>
+</resources>
