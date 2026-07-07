@@ -2233,15 +2233,63 @@ document.getElementById('btnAddCustom').onclick = () => {
   toast("ADDED TO LIBRARY");
 };
 
-document.getElementById('btnExportData').onclick = () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gym-log-backup-${todayISO()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast("BACKUP DOWNLOADED");
+// Last-resort fallback: put the backup on the clipboard so it can never be lost silently.
+function backupClipboardFallback(json) {
+  try {
+    navigator.clipboard.writeText(json);
+    toast("BACKUP COPIED — PASTE & SAVE IT");
+  } catch (e) {
+    window.prompt("Copy your backup text and save it somewhere safe:", json);
+  }
+}
+
+document.getElementById('btnExportData').onclick = async () => {
+  const json = JSON.stringify(state, null, 2);
+  const filename = `gym-log-backup-${todayISO()}.json`;
+  const Cap = window.Capacitor;
+  const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
+  const FS = Cap && Cap.Plugins && Cap.Plugins.Filesystem;
+  const SH = Cap && Cap.Plugins && Cap.Plugins.Share;
+
+  // --- Installed Android app: write a real file, then offer the share sheet ---
+  if (isNative && FS && FS.writeFile) {
+    try {
+      await FS.writeFile({ path: filename, data: json, directory: 'CACHE', encoding: 'utf8' });
+      const { uri } = await FS.getUri({ path: filename, directory: 'CACHE' });
+      if (SH && SH.share) {
+        try {
+          await SH.share({ title: 'UY Gym Log backup', url: uri, dialogTitle: 'Save or send your backup' });
+          toast("BACKUP READY — SAVE IT");
+        } catch (shareErr) {
+          // Share sheet dismissed/cancelled — the file still exists in app storage.
+          toast("BACKUP FILE CREATED");
+        }
+        return;
+      }
+      // No Share plugin available: drop a findable copy into Documents.
+      await FS.writeFile({ path: filename, data: json, directory: 'DOCUMENTS', encoding: 'utf8' });
+      toast("BACKUP SAVED TO DOCUMENTS");
+      return;
+    } catch (e) {
+      alert("Couldn't save the backup file (" + (e && e.message ? e.message : e) + ").\nCopying it to your clipboard instead — paste it into a note or Drive.");
+      backupClipboardFallback(json);
+      return;
+    }
+  }
+
+  // --- Browser / standalone test HTML: normal download works here ---
+  try {
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("BACKUP DOWNLOADED");
+  } catch (e) {
+    backupClipboardFallback(json);
+  }
 };
 document.getElementById('btnImportData').onclick = () => document.getElementById('importFile').click();
 document.getElementById('importFile').addEventListener('change', (e) => {
