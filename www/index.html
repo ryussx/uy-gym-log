@@ -601,7 +601,12 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.1em;" id="activeName">SESSION</div>
-          <div style="color:var(--dim);font-size:11px;letter-spacing:.15em;" id="activeDate"></div>
+          <div style="color:var(--dim);font-size:11px;letter-spacing:.15em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span id="activeDate"></span>
+            <span style="position:relative;color:var(--accent);cursor:pointer;">✎ CHANGE DATE
+              <input type="date" id="activeDateInput" onchange="changeActiveDate(this.value)" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;">
+            </span>
+          </div>
           <div id="editingBadge" style="display:none;color:var(--accent);font-size:10px;letter-spacing:.2em;margin-top:4px;">⚐ EDITING SAVED SESSION</div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -1187,6 +1192,17 @@ function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function changeActiveDate(v) {
+  if (!state.active || !v) return;
+  if (v > todayISO()) { toast("CAN'T PICK A FUTURE DATE"); v = todayISO(); }
+  state.active.date = v;
+  saveState();
+  document.getElementById('activeDate').textContent = formatDate(v);
+}
+// Keep history newest-first by date (stable: same-date keeps insertion order).
+function sortHistory() {
+  state.history.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+}
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00");
   const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
@@ -1335,6 +1351,9 @@ function renderWorkout() {
     document.getElementById('workoutActive').style.display = 'block';
     document.getElementById('activeName').textContent = state.active.name.toUpperCase();
     document.getElementById('activeDate').textContent = formatDate(state.active.date);
+    const _di = document.getElementById('activeDateInput');
+    _di.max = todayISO();
+    _di.value = state.active.date;
     document.getElementById('editingBadge').style.display = editingHistoryId ? 'block' : 'none';
     document.getElementById('btnFinish').textContent = editingHistoryId ? 'SAVE CHANGES' : 'FINISH & SAVE';
     renderExerciseList();
@@ -1547,11 +1566,13 @@ document.getElementById('btnFinish').onclick = () => {
     }
     state.active = null;
     editingHistoryId = null;
+    sortHistory();
     saveState();
     toast("CHANGES SAVED");
   } else {
     state.history.unshift(w);
     state.active = null;
+    sortHistory();
     saveState();
     toast("SESSION SAVED");
   }
@@ -2269,7 +2290,6 @@ renderWorkout();
   const LN = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
   let actionTypesReady = false;
   const NOTIF_BASE = 90000;            // notification id space for this feature
-  const CHANNEL_ID = "gym-reminders";  // high-importance channel (heads-up + sound)
   const shownThisSession = new Set();  // item ids already surfaced in-app this run
 
   // ---- state init ----------------------------------------------------------
@@ -2522,23 +2542,6 @@ renderWorkout();
     } catch (e) { /* non-fatal */ }
   }
 
-  // High-importance channel => notification pops on screen with sound + vibration,
-  // and shows full content on the lock screen.
-  async function ensureChannel() {
-    if (!isNative || !LN || !LN.createChannel) return;
-    try {
-      await LN.createChannel({
-        id: CHANNEL_ID,
-        name: "Gym Reminders",
-        description: "Workout set reminders",
-        importance: 5,     // MAX: heads-up + sound
-        visibility: 1,     // PUBLIC: show full content on the lock screen
-        vibration: true,
-        lights: true
-      });
-    } catch (e) { /* non-fatal */ }
-  }
-
   async function setReminders() {
     const items = state.reminders.items;
     if (!items.length) { toast("NOTHING TO SET"); return; }
@@ -2546,7 +2549,6 @@ renderWorkout();
     const ok = await ensurePermission();
     if (!ok) return;
     await registerActions();
-    await ensureChannel();
 
     // reset statuses for the new day
     items.forEach(i => { i.status = "pending"; delete i.snoozeUntil; });
@@ -2569,9 +2571,8 @@ renderWorkout();
         it.notifId = NOTIF_BASE + i;
         notifications.push({
           id: it.notifId,
-          title: it.exercise ? `🏋️ ${it.exercise}` : "🏋️ Workout reminder",
-          body: it.exercise ? `${detailText(it)} · tap to log` : "Tap to choose an exercise and log a set",
-          channelId: CHANNEL_ID,
+          title: "GYM",
+          body: it.exercise ? `${it.exercise} — ${detailText(it)}` : "Workout reminder — tap to log a set",
           schedule: { at, allowWhileIdle: true },
           actionTypeId: "GYM_REMINDER",
           extra: { itemId: it.id }
@@ -2668,15 +2669,13 @@ renderWorkout();
     render();
     if (isNative && LN) {
       try {
-        await ensureChannel();
         const newId = NOTIF_BASE + 1000 + (state.reminders.items.indexOf(it));
         it.notifId = newId;
         await LN.schedule({
           notifications: [{
             id: newId,
-            title: it.exercise ? `🏋️ ${it.exercise}` : "🏋️ Workout reminder",
-            body: it.exercise ? `${detailText(it)} · tap to log` : "Tap to choose an exercise and log a set",
-            channelId: CHANNEL_ID,
+            title: "GYM (snoozed)",
+            body: `${it.exercise} — ${detailText(it)}`,
             schedule: { at: when, allowWhileIdle: true },
             actionTypeId: "GYM_REMINDER",
             extra: { itemId: it.id }
@@ -2752,25 +2751,9 @@ renderWorkout();
     const tab = document.querySelector('.tab[data-view="remind"]');
     if (tab) tab.addEventListener("click", render);
 
-    // The in-app checker only matters while the app is on screen. When the app
-    // is backgrounded/closed, Android's scheduled notifications do the work, so
-    // we fully stop the timer — nothing runs in the background.
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") { tick(); startTicker(); }
-      else { stopTicker(); }
-    });
-    window.addEventListener("focus", () => { tick(); startTicker(); });
-    window.addEventListener("blur", stopTicker);
-  }
-
-  let tickerId = null;
-  function startTicker() {
-    if (tickerId === null && document.visibilityState === "visible") {
-      tickerId = setInterval(tick, 30000);
-    }
-  }
-  function stopTicker() {
-    if (tickerId !== null) { clearInterval(tickerId); tickerId = null; }
+    // re-check when app returns to foreground
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") tick(); });
+    window.addEventListener("focus", tick);
   }
 
   // expose row callbacks
@@ -2779,7 +2762,8 @@ renderWorkout();
   // boot
   wire();
   render();
-  if (document.visibilityState === "visible") { tick(); startTicker(); }
+  tick();
+  setInterval(tick, 20000);
 })();
 </script>
 
