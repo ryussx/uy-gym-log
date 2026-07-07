@@ -2269,6 +2269,7 @@ renderWorkout();
   const LN = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
   let actionTypesReady = false;
   const NOTIF_BASE = 90000;            // notification id space for this feature
+  const CHANNEL_ID = "gym-reminders";  // high-importance channel (heads-up + sound)
   const shownThisSession = new Set();  // item ids already surfaced in-app this run
 
   // ---- state init ----------------------------------------------------------
@@ -2521,6 +2522,23 @@ renderWorkout();
     } catch (e) { /* non-fatal */ }
   }
 
+  // High-importance channel => notification pops on screen with sound + vibration,
+  // and shows full content on the lock screen.
+  async function ensureChannel() {
+    if (!isNative || !LN || !LN.createChannel) return;
+    try {
+      await LN.createChannel({
+        id: CHANNEL_ID,
+        name: "Gym Reminders",
+        description: "Workout set reminders",
+        importance: 5,     // MAX: heads-up + sound
+        visibility: 1,     // PUBLIC: show full content on the lock screen
+        vibration: true,
+        lights: true
+      });
+    } catch (e) { /* non-fatal */ }
+  }
+
   async function setReminders() {
     const items = state.reminders.items;
     if (!items.length) { toast("NOTHING TO SET"); return; }
@@ -2528,6 +2546,7 @@ renderWorkout();
     const ok = await ensurePermission();
     if (!ok) return;
     await registerActions();
+    await ensureChannel();
 
     // reset statuses for the new day
     items.forEach(i => { i.status = "pending"; delete i.snoozeUntil; });
@@ -2550,8 +2569,9 @@ renderWorkout();
         it.notifId = NOTIF_BASE + i;
         notifications.push({
           id: it.notifId,
-          title: "GYM",
-          body: it.exercise ? `${it.exercise} — ${detailText(it)}` : "Workout reminder — tap to log a set",
+          title: it.exercise ? `🏋️ ${it.exercise}` : "🏋️ Workout reminder",
+          body: it.exercise ? `${detailText(it)} · tap to log` : "Tap to choose an exercise and log a set",
+          channelId: CHANNEL_ID,
           schedule: { at, allowWhileIdle: true },
           actionTypeId: "GYM_REMINDER",
           extra: { itemId: it.id }
@@ -2648,13 +2668,15 @@ renderWorkout();
     render();
     if (isNative && LN) {
       try {
+        await ensureChannel();
         const newId = NOTIF_BASE + 1000 + (state.reminders.items.indexOf(it));
         it.notifId = newId;
         await LN.schedule({
           notifications: [{
             id: newId,
-            title: "GYM (snoozed)",
-            body: `${it.exercise} — ${detailText(it)}`,
+            title: it.exercise ? `🏋️ ${it.exercise}` : "🏋️ Workout reminder",
+            body: it.exercise ? `${detailText(it)} · tap to log` : "Tap to choose an exercise and log a set",
+            channelId: CHANNEL_ID,
             schedule: { at: when, allowWhileIdle: true },
             actionTypeId: "GYM_REMINDER",
             extra: { itemId: it.id }
@@ -2730,9 +2752,25 @@ renderWorkout();
     const tab = document.querySelector('.tab[data-view="remind"]');
     if (tab) tab.addEventListener("click", render);
 
-    // re-check when app returns to foreground
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") tick(); });
-    window.addEventListener("focus", tick);
+    // The in-app checker only matters while the app is on screen. When the app
+    // is backgrounded/closed, Android's scheduled notifications do the work, so
+    // we fully stop the timer — nothing runs in the background.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") { tick(); startTicker(); }
+      else { stopTicker(); }
+    });
+    window.addEventListener("focus", () => { tick(); startTicker(); });
+    window.addEventListener("blur", stopTicker);
+  }
+
+  let tickerId = null;
+  function startTicker() {
+    if (tickerId === null && document.visibilityState === "visible") {
+      tickerId = setInterval(tick, 30000);
+    }
+  }
+  function stopTicker() {
+    if (tickerId !== null) { clearInterval(tickerId); tickerId = null; }
   }
 
   // expose row callbacks
@@ -2741,8 +2779,7 @@ renderWorkout();
   // boot
   wire();
   render();
-  tick();
-  setInterval(tick, 20000);
+  if (document.visibilityState === "visible") { tick(); startTicker(); }
 })();
 </script>
 
