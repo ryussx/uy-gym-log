@@ -762,6 +762,8 @@
       <button class="btn accent" id="btnExportAllPdf" style="margin-bottom:8px;">EXPORT ALL SESSIONS (PDF)</button>
       <button class="btn ghost" id="btnExportData" style="margin-bottom:8px;">EXPORT BACKUP (JSON)</button>
       <button class="btn ghost" id="btnImportData">IMPORT BACKUP</button>
+      <button class="btn ghost" id="btnMergeForceLab" style="margin-top:8px;">MERGE FORCE LAB</button>
+      <input type="file" id="mergeForceLabFile" accept=".json" style="display:none;">
       <input type="file" id="importFile" accept=".json" style="display:none;">
     </div>
 
@@ -2764,6 +2766,54 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   };
   reader.readAsText(f);
 });
+// ---- UY Force Lab merge import ----
+// Accepts { forceLab:true, sessions:[...] } from UY Force Lab. Appends (never replaces):
+// sessions are matched by id (one per day), sets deduped by id, exercises added to state.custom
+// with a kg-tracking type so getKgStats() picks peak force up as the exercise max.
+document.getElementById('btnMergeForceLab').onclick = () => document.getElementById('mergeForceLabFile').click();
+document.getElementById('mergeForceLabFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || !parsed.forceLab || !Array.isArray(parsed.sessions)) { toast("NOT A FORCE LAB FILE"); return; }
+      let addedSets = 0, addedEx = 0;
+      for (const inc of parsed.sessions) {
+        let sess = state.history.find(h => h.id === inc.id);
+        if (!sess) {
+          sess = { id: inc.id, name: inc.name || "Force Lab", date: inc.date, source: "force-lab", exercises: [], note: inc.note || "" };
+          state.history.unshift(sess);
+        }
+        for (const incEx of inc.exercises) {
+          if (!findExerciseStrict(incEx.name)) {
+            state.custom.push({ name: incEx.name, track: "reps", category: "Force Lab" });
+            addedEx++;
+          }
+          let ex = sess.exercises.find(x => x.name === incEx.name);
+          if (!ex) { ex = { id: uid(), name: incEx.name, sets: [], note: "" }; sess.exercises.push(ex); }
+          for (const st of incEx.sets) {
+            if (ex.sets.some(x => x.id === st.id)) continue;
+            ex.sets.push({ id: st.id, weight: "", kg: st.kg, reps: st.reps, variation: st.variation || "iso", note: st.note || "" });
+            addedSets++;
+          }
+        }
+      }
+      sortHistory();
+      saveState();
+      toast(`MERGED ${addedSets} SETS` + (addedEx ? ` · ${addedEx} NEW EXERCISES` : ""));
+      renderWorkout();
+    } catch (err) { toast("INVALID FILE"); }
+    e.target.value = "";
+  };
+  reader.readAsText(f);
+});
+function findExerciseStrict(name) {
+  for (const cat in LIBRARY) if (LIBRARY[cat].some(e => e.name === name)) return true;
+  return state.custom.some(e => e.name === name);
+}
+
 document.getElementById('btnWipe').onclick = () => {
   if (!confirm('Delete ALL workout history and custom exercises? This cannot be undone.')) return;
   if (!confirm('Are you absolutely sure?')) return;
