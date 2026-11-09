@@ -2037,7 +2037,31 @@ function renderPicker(q) {
   } else if (!html) {
     html = '<div class="empty">NO EXERCISES</div>';
   }
+  // Quick-create: offer to add the typed name as a new exercise without leaving the picker
+  const typed = q.trim();
+  if (typed) {
+    const exact = Object.values(allCats).some(list => list.some(e => e.name.toLowerCase() === ql));
+    if (!exact) {
+      html = `
+        <div class="ex-item" style="border:1px dashed var(--accent);margin-bottom:8px;" onclick="quickCreateExercise()">
+          <span>Create “${escapeHtml(typed)}” as new exercise</span>
+          <span class="add">+</span>
+        </div>` + html;
+    }
+  }
   wrap.innerHTML = html;
+}
+
+// Adds the typed picker text to the custom library (weight+reps, Custom category) and picks it.
+function quickCreateExercise() {
+  const name = document.getElementById('pickerSearch').value.trim();
+  if (!name) return;
+  if (!findExerciseStrict(name)) {
+    state.custom.push({ name, track: "weight_reps", category: "Custom" });
+    saveState();
+    toast("ADDED TO LIBRARY");
+  }
+  pickExercise(name);
 }
 
 function pickExercise(name) {
