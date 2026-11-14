@@ -95,3 +95,12 @@ android/                native Android project (manifest already has the
                         notification + exact-alarm + boot permissions)
 .github/workflows/      the cloud build
 ```
+
+
+## Signing / updating the APK
+
+CI signs every build with `android/app/uy-apps.keystore` (committed, alias `uyapps`), so a new APK
+installs *over* the previous one and keeps your data. If an install ever says "package conflicts with
+an existing package", the installed copy was signed with a different key: Settings → Export Backup,
+uninstall, install the new APK, Import Backup. The keystore is in a public repo and only guards
+updates on your own phone; it is not a Play Store key.

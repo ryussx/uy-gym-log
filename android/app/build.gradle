@@ -16,8 +16,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Fixed signing key committed with the repo so every CI build is signed identically
+    // and the APK can update over the previous install (random per-run debug keys can't).
+    signingConfigs {
+        uyapps {
+            storeFile file("uy-apps.keystore")
+            storePassword "uyapps2026"
+            keyAlias "uyapps"
+            keyPassword "uyapps2026"
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.uyapps
+        }
         release {
+            signingConfig signingConfigs.uyapps
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
