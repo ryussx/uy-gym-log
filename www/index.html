@@ -763,6 +763,7 @@
       <button class="btn ghost" id="btnExportData" style="margin-bottom:8px;">EXPORT BACKUP (JSON)</button>
       <button class="btn ghost" id="btnImportData">IMPORT BACKUP</button>
       <button class="btn ghost" id="btnMergeForceLab" style="margin-top:8px;">MERGE FORCE LAB</button>
+      <button class="btn ghost" id="btnConsolidate" style="margin-top:8px;">MERGE SAME-DAY SESSIONS</button>
       <input type="file" id="mergeForceLabFile" accept=".json" style="display:none;">
       <input type="file" id="importFile" accept=".json" style="display:none;">
     </div>
@@ -1588,6 +1589,48 @@ function changeActiveDate(v) {
 function sortHistory() {
   state.history.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
 }
+// ---- One session per date ----
+// Combine `src` into `dst` (same date): exercises appended, same-name exercises get their sets
+// appended (deduped by set id), names joined with " + " when different, notes joined.
+function mergeSessionInto(dst, src) {
+  if (!dst || !src || dst === src) return dst;
+  for (const ex of (src.exercises || [])) {
+    let tgt = dst.exercises.find(e => e.name === ex.name);
+    if (!tgt) { tgt = { id: uid(), name: ex.name, sets: [], note: ex.note || "" }; dst.exercises.push(tgt); }
+    else if (ex.note && !(tgt.note || "").includes(ex.note)) tgt.note = tgt.note ? `${tgt.note} · ${ex.note}` : ex.note;
+    for (const st of (ex.sets || [])) {
+      if (st.id && tgt.sets.some(x => x.id === st.id)) continue;
+      tgt.sets.push({ ...st, id: st.id || uid() });
+    }
+  }
+  const dn = (dst.name || "").trim(), sn = (src.name || "").trim();
+  if (sn && sn !== dn && !dn.split(" + ").map(x => x.trim()).includes(sn)) dst.name = dn ? `${dn} + ${sn}` : sn;
+  if (src.note && !(dst.note || "").includes(src.note)) dst.note = dst.note ? `${dst.note} · ${src.note}` : src.note;
+  return dst;
+}
+// Put a session into history, folding it into an existing session on the same date if one exists.
+// Returns the session that now holds the data.
+function commitSession(w, excludeId) {
+  const same = state.history.find(h => h.date === w.date && h.id !== excludeId && h.id !== w.id);
+  if (same) { mergeSessionInto(same, w); state.history = state.history.filter(h => h.id !== w.id); return same; }
+  if (!state.history.some(h => h.id === w.id)) state.history.unshift(w);
+  return w;
+}
+// Fold every group of same-date sessions in history into one. Returns how many were merged away.
+function consolidateHistoryByDate() {
+  const byDate = new Map();
+  let merged = 0;
+  const keep = [];
+  for (const h of state.history) {
+    const first = byDate.get(h.date);
+    if (!first) { byDate.set(h.date, h); keep.push(h); }
+    else { mergeSessionInto(first, h); merged++; }
+  }
+  state.history = keep;
+  sortHistory();
+  return merged;
+}
+
 function formatDate(iso) {
   const d = new Date(iso + "T00:00:00");
   const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
@@ -1942,24 +1985,24 @@ document.getElementById('btnFinish').onclick = () => {
   }
 
   if (editingHistoryId) {
-    // Update existing history entry
+    // Update existing history entry, then fold any other same-date session into it
     const idx = state.history.findIndex(h => h.id === editingHistoryId);
-    if (idx >= 0) {
-      state.history[idx] = { ...w, id: editingHistoryId };
-    } else {
-      state.history.unshift(w);
-    }
+    const saved = { ...w, id: editingHistoryId };
+    if (idx >= 0) state.history[idx] = saved; else state.history.unshift(saved);
+    const others = state.history.filter(h => h.date === saved.date && h.id !== saved.id);
+    for (const o of others) mergeSessionInto(saved, o);
+    if (others.length) state.history = state.history.filter(h => !others.includes(h));
     state.active = null;
     editingHistoryId = null;
     sortHistory();
     saveState();
-    toast("CHANGES SAVED");
+    toast(others.length ? "CHANGES SAVED · MERGED SAME-DAY SESSION" : "CHANGES SAVED");
   } else {
-    state.history.unshift(w);
+    const holder = commitSession(w);
     state.active = null;
     sortHistory();
     saveState();
-    toast("SESSION SAVED");
+    toast(holder === w ? "SESSION SAVED" : "ADDED TO THAT DAY'S SESSION");
   }
   renderWorkout();
 };
@@ -2805,10 +2848,14 @@ document.getElementById('mergeForceLabFile').addEventListener('change', (e) => {
       if (!parsed || !parsed.forceLab || !Array.isArray(parsed.sessions)) { toast("NOT A FORCE LAB FILE"); return; }
       let addedSets = 0, addedEx = 0;
       for (const inc of parsed.sessions) {
-        let sess = state.history.find(h => h.id === inc.id);
+        // one session per date: fold into whatever already exists for that day
+        let sess = state.history.find(h => h.date === inc.date);
         if (!sess) {
           sess = { id: inc.id, name: inc.name || "Force Lab", date: inc.date, source: "force-lab", exercises: [], note: inc.note || "" };
           state.history.unshift(sess);
+        } else {
+          const nm = (inc.name || "Force Lab").trim(), dn = (sess.name || "").trim();
+          if (nm !== dn && !dn.split(" + ").map(x => x.trim()).includes(nm)) sess.name = dn ? `${dn} + ${nm}` : nm;
         }
         for (const incEx of inc.exercises) {
           if (!findExerciseStrict(incEx.name)) {
@@ -2833,6 +2880,16 @@ document.getElementById('mergeForceLabFile').addEventListener('change', (e) => {
   };
   reader.readAsText(f);
 });
+document.getElementById('btnConsolidate').onclick = () => {
+  const dates = new Set(), dup = new Set();
+  for (const h of state.history) { if (dates.has(h.date)) dup.add(h.date); dates.add(h.date); }
+  if (!dup.size) { toast("NO SAME-DAY DUPLICATES"); return; }
+  if (!confirm(`Merge sessions on ${dup.size} date${dup.size > 1 ? "s" : ""} into one per day? This can't be undone (export a backup first).`)) return;
+  const n = consolidateHistoryByDate();
+  saveState();
+  toast(`MERGED ${n} SESSION${n === 1 ? "" : "S"}`);
+  renderHistory();
+};
 function findExerciseStrict(name) {
   for (const cat in LIBRARY) if (LIBRARY[cat].some(e => e.name === name)) return true;
   return state.custom.some(e => e.name === name);
