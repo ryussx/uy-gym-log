@@ -417,6 +417,13 @@
   }
   .toast.show { opacity: 1; }
 
+  /* Speaking stopwatch controls */
+  .sw-voice { display:grid; grid-template-columns: 1.3fr 1fr 1fr auto; gap:6px; align-items:end; margin:4px 0 14px; }
+  .sw-voice label { display:flex; flex-direction:column; gap:4px; font-size:11px; letter-spacing:.08em; color:var(--ink-2, #888); }
+  .sw-voice select { padding:10px 8px; background:transparent; color:var(--ink); border:1px solid var(--line-2); border-radius:8px; font-size:14px; }
+  .sw-voice .btn { padding:10px 6px; font-size:12px; }
+  .sw-voice .btn.on { border-color: var(--accent); color: var(--accent); }
+
   /* Stopwatch / Timer */
   .clock-display {
     font-family: 'Bebas Neue', sans-serif;
@@ -686,6 +693,23 @@
         <button class="btn accent" id="btnSwStart">START</button>
         <button class="btn ghost" id="btnSwLap">LAP</button>
         <button class="btn ghost" id="btnSwReset">RESET</button>
+      </div>
+      <div class="sw-voice">
+        <button class="btn ghost" id="btnSwVoice">VOICE: OFF</button>
+        <label>Every
+          <select id="swVoiceEvery">
+            <option value="1">1 s</option><option value="2">2 s</option><option value="3">3 s</option>
+            <option value="5" selected>5 s</option><option value="10">10 s</option><option value="15">15 s</option>
+            <option value="30">30 s</option><option value="60">60 s</option>
+          </select>
+        </label>
+        <label>Speed
+          <select id="swVoiceRate">
+            <option value="1">1.0×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+            <option value="1.75">1.75×</option><option value="2">2.0×</option>
+          </select>
+        </label>
+        <button class="btn ghost" id="btnSwVoiceTest" style="padding:10px;">TEST</button>
       </div>
       <div class="lap-list" id="lapList"></div>
     </div>
@@ -2457,7 +2481,69 @@ function swFormat(ms) {
 function swRender() {
   const now = swInterval ? Date.now() - swStart + swElapsed : swElapsed;
   document.getElementById('swDisplay').textContent = swFormat(now);
+  swSpeakTick();
 }
+// ---- Speaking stopwatch ----
+// Says the elapsed seconds aloud every N seconds at a chosen rate (up to 2x). Uses the phone's
+// native TTS inside the app (Android WebView has no Web Speech API) and speechSynthesis in a browser.
+const swVoice = {
+  on: localStorage.getItem('sw_voice_on') === '1',
+  every: Number(localStorage.getItem('sw_voice_every') || 5),
+  rate: Number(localStorage.getItem('sw_voice_rate') || 1),
+  lastSec: -1,
+  busy: false,
+  keep: [],
+};
+const TTS = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) || null;
+const TTS_NATIVE = !!(TTS && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+function swSay(text, force) {
+  if (TTS_NATIVE) {
+    if (swVoice.busy && !force) return;
+    swVoice.busy = true;
+    const go = force ? TTS.stop().catch(() => {}) : Promise.resolve();
+    go.then(() => TTS.speak({ text, lang: 'en-US', rate: swVoice.rate, pitch: 1, volume: 1, category: 'ambient' }))
+      .catch(() => {}).finally(() => { swVoice.busy = false; });
+    return;
+  }
+  if (!('speechSynthesis' in window)) return;
+  try {
+    if (force) speechSynthesis.cancel();
+    else if (speechSynthesis.speaking || speechSynthesis.pending) return; // never pile up
+    speechSynthesis.resume();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = swVoice.rate;
+    swVoice.keep.push(u); if (swVoice.keep.length > 6) swVoice.keep.shift();
+    u.onend = () => { const i = swVoice.keep.indexOf(u); if (i >= 0) swVoice.keep.splice(i, 1); };
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function swSpeakTick() {
+  if (!swVoice.on || !swInterval) return;
+  const sec = Math.floor((Date.now() - swStart + swElapsed) / 1000);
+  if (sec === swVoice.lastSec || sec === 0) return;
+  swVoice.lastSec = sec;
+  if (sec % swVoice.every === 0) swSay(String(sec), false);
+}
+function swVoiceRender() {
+  const b = document.getElementById('btnSwVoice');
+  b.textContent = swVoice.on ? 'VOICE: ON' : 'VOICE: OFF';
+  b.classList.toggle('on', swVoice.on);
+  document.getElementById('swVoiceEvery').value = String(swVoice.every);
+  document.getElementById('swVoiceRate').value = String(swVoice.rate);
+}
+document.getElementById('btnSwVoice').onclick = () => {
+  swVoice.on = !swVoice.on; localStorage.setItem('sw_voice_on', swVoice.on ? '1' : '0'); swVoiceRender();
+  if (swVoice.on) swSay('Voice on', true);
+};
+document.getElementById('swVoiceEvery').onchange = e => { swVoice.every = Number(e.target.value); localStorage.setItem('sw_voice_every', String(swVoice.every)); };
+document.getElementById('swVoiceRate').onchange = e => { swVoice.rate = Number(e.target.value); localStorage.setItem('sw_voice_rate', String(swVoice.rate)); };
+document.getElementById('btnSwVoiceTest').onclick = () => {
+  const ok = TTS_NATIVE || ('speechSynthesis' in window);
+  if (!ok) { toast('NO SPEECH ENGINE — OPEN IN CHROME'); return; }
+  swSay('1, 2, 3, 4, 5', true);
+};
+swVoiceRender();
+
 document.getElementById('btnSwStart').onclick = function() {
   if (swInterval) {
     // pause
@@ -2470,6 +2556,7 @@ document.getElementById('btnSwStart').onclick = function() {
     swInterval = setInterval(swRender, 33);
     this.textContent = 'PAUSE';
     beep(0, 0.001, 0); // unlock audio
+    if (swVoice.on && swElapsed === 0) swSay('Go', true);
   }
 };
 document.getElementById('btnSwLap').onclick = () => {
@@ -2482,6 +2569,7 @@ document.getElementById('btnSwReset').onclick = () => {
   swInterval = null;
   swElapsed = 0;
   swLaps = [];
+  swVoice.lastSec = -1;
   document.getElementById('btnSwStart').textContent = 'START';
   swRender();
   renderLaps();
