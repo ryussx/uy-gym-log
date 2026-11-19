@@ -786,9 +786,7 @@
       <button class="btn accent" id="btnExportAllPdf" style="margin-bottom:8px;">EXPORT ALL SESSIONS (PDF)</button>
       <button class="btn ghost" id="btnExportData" style="margin-bottom:8px;">EXPORT BACKUP (JSON)</button>
       <button class="btn ghost" id="btnImportData">IMPORT BACKUP</button>
-      <button class="btn ghost" id="btnMergeForceLab" style="margin-top:8px;">MERGE FORCE LAB</button>
       <button class="btn ghost" id="btnConsolidate" style="margin-top:8px;">MERGE SAME-DAY SESSIONS</button>
-      <input type="file" id="mergeForceLabFile" accept=".json" style="display:none;">
       <input type="file" id="importFile" accept=".json" style="display:none;">
     </div>
 
@@ -818,6 +816,157 @@
   </div>
 
   <!-- TABS - two rows -->
+  <div class="view" id="view-force">
+<div id="camPip" class="campip hidden"><video id="camVideo" playsinline autoplay muted></video></div>
+  <div id="flApp">
+    <header class="fl-top">
+      <div class="fl-brand">Force <span>Lab</span></div>
+      <div class="conn">
+        <span id="statusPill" class="pill idle"><span id="statusDot" class="dot idle"></span><span id="statusText">Not connected</span><span id="statusKg"></span></span>
+        <button id="btnConnect" class="sm">Connect scale</button>
+        <button id="btnSim" class="sm ghost">Simulator</button>
+        <button id="btnTare" class="sm ghost" disabled>Tare</button>
+      </div>
+    </header>
+
+    <nav class="fl-tabs">
+      <button data-tab="train" class="active">Train</button>
+      <button data-tab="history">History</button>
+      <button data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- TRAIN -->
+    <section id="tab-train" class="fl-tab active">
+      <div class="row">
+        <label>Exercise
+          <div style="display:flex;gap:6px"><select id="exercise"></select><button id="btnNewEx" class="sm" type="button" title="Add a new exercise">+ New</button></div>
+        </label>
+        <div id="newExBox" class="row hidden" style="width:100%"><input type="text" id="newExName" placeholder="New exercise name" /><button id="btnNewExSave" class="sm primary" type="button">Add &amp; select</button><button id="btnNewExCancel" class="sm ghost" type="button">Cancel</button></div>
+        <label>Side
+          <select id="side">
+            <option value="both">Both</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Protocol
+          <select id="protocol">
+            <option value="free">Free set</option>
+            <option value="countdown">Countdown (ARX-style)</option>
+            <option value="ramp">Ramp + hold</option>
+            <option value="repeaters">Repeaters</option>
+            <option value="maxtest">Max test</option>
+            <option value="critical">Critical force test</option>
+          </select>
+        </label>
+        <div id="params" class="params"></div>
+      </div>
+      <p id="protocolHelp" class="help"></p>
+
+      <div id="zoneBar" class="zonebar">
+        <label class="inline"><input type="checkbox" id="zoneOn" /> Target zone</label>
+        <input type="number" id="zoneLo" value="60" min="0" max="100" step="5" /> –
+        <input type="number" id="zoneHi" value="75" min="0" max="100" step="5" /> % of max
+        <span id="zoneMax" class="muted"></span>
+        <label class="inline" style="margin:0 0 0 auto"><input type="checkbox" id="ghostOn" checked /> Ghost (last set)</label>
+      </div>
+      <div class="row camrow">
+        <label class="inline"><input type="checkbox" id="camOn" /> 📹 Camera preview (drag it anywhere; tap to enlarge)</label>
+        <button id="btnCamFlip" class="sm ghost hidden">Flip</button>
+      </div>
+
+      <div id="phaseBanner" class="banner idle">
+        <div class="phase" id="phaseName">Ready</div>
+        <div class="countdown" id="phaseTime">—</div>
+      </div>
+
+      <div class="live">
+        <div class="bigkg"><span id="liveKg">0.0</span><small>kg</small></div>
+        <div class="elapsed"><span id="said" class="said"></span><span id="elapsed">0:00</span></div>
+      </div>
+
+      <div class="chartwrap"><canvas id="chart"></canvas></div>
+
+      <div class="stats">
+        <div class="stat"><div class="fl-k">Peak</div><div class="fl-v" id="sPeak">–</div><div class="fl-d" id="dPeak"></div></div>
+        <div class="stat"><div class="fl-k">Intensity</div><div class="fl-v" id="sAvg">–</div><div class="fl-d" id="dAvg"></div></div>
+        <div class="stat"><div class="fl-k">Output</div><div class="fl-v" id="sOut">–</div><div class="fl-d" id="dOut"></div></div>
+        <div class="stat"><div class="fl-k">Goal</div><div class="fl-v" id="sGoal">–</div><div class="fl-d muted">last best</div></div>
+        <div class="stat"><div class="fl-k">Inroad</div><div class="fl-v" id="sInroad">–</div><div class="fl-d muted">fatigue</div></div>
+        <div class="stat"><div class="fl-k">Reps</div><div class="fl-v" id="sReps">–</div><div class="fl-d" id="dReps"></div></div>
+      </div>
+
+      <div id="simPanel" class="simpanel hidden">
+        <label>Simulated effort <span id="simVal">0</span> kg
+          <input type="range" id="simEffort" min="0" max="300" value="0" />
+        </label>
+        <label class="inline" style="margin:6px 0 0"><input type="checkbox" id="simExact" /> Exact mode — reading equals the slider (no lag, fatigue or noise)</label>
+        <div class="muted" id="simHelp">Slide up to "push", back to 0 to rest. Fatigue is simulated.</div>
+      </div>
+
+      <div class="actions">
+        <button id="btnStart" class="primary big" disabled>Start set</button>
+        <button id="btnStop" class="danger big hidden">Stop</button>
+      </div>
+
+      <div id="summary" class="summary hidden"></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="tab-history" class="fl-tab">
+      <div class="row">
+        <label>Exercise <select id="histExercise"><option value="">All</option></select></label>
+        <div class="actions-inline">
+          <button id="btnCsv" class="sm">Export CSV</button>
+          <button id="btnJson" class="sm ghost">Export JSON</button>
+        </div>
+      </div>
+      <div id="progress" class="chartwrap small"><canvas id="progressChart"></canvas></div>
+      <table class="hist">
+        <thead><tr><th>Date</th><th>Exercise</th><th>Mode</th><th>Reps</th><th>Time</th><th>Peak</th><th>Int.</th><th>Output</th><th>Inroad</th><th></th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+      <div id="histDetail" class="summary hidden"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="fl-tab">
+      <h3>Voice & sound</h3>
+      <label class="inline"><input type="checkbox" id="voiceOn" checked /> Voice callouts (force, zone, phases) <button id="btnTestVoice" class="sm ghost" type="button" style="margin-left:8px">Test voice</button> <span id="voiceStatus" class="muted"></span></label>
+      <label class="inline"><input type="checkbox" id="beepOn" checked /> Beeps</label>
+      <label class="inline"><input type="checkbox" id="secBeep" /> Beep every second during work</label>
+      <label class="inline"><input type="checkbox" id="secCount" /> Count seconds aloud (1, 2, 3…)</label>
+      <label class="inline"><input type="checkbox" id="calloutOn" checked /> Read out force every <input type="number" id="calloutEvery" value="5" min="1" max="60" step="1" style="width:64px" /> seconds during work (skipped while a target zone is on)</label>
+      <p class="help">When a count and a force callout land on the same second you hear one phrase, e.g. "10, 62". If speech ever goes silent, tap any button once to re-wake the phone's speech engine.</p>
+
+      <h3>Your maxes</h3>
+      <table class="hist"><thead><tr><th>Exercise</th><th>Side</th><th>Max kg</th><th>When</th><th></th></tr></thead><tbody id="maxBody"></tbody></table>
+      <p class="help">Run the "Max test" protocol to set these, or type one: </p>
+      <div class="row">
+        <select id="maxExercise"></select>
+        <select id="maxSide"><option value="both">Both</option><option value="left">Left</option><option value="right">Right</option></select>
+        <input type="number" id="maxKg" placeholder="kg" step="0.5" />
+        <button id="btnSetMax" class="sm">Save</button>
+      </div>
+
+      <h3>Exercises</h3>
+      <div id="exList" class="exlist"></div>
+      <div class="row"><input type="text" id="newEx" placeholder="New exercise name" /><button id="btnAddEx" class="sm">Add</button></div>
+
+      <h3>Scan debug</h3>
+      <p class="help">Everything the phone hears while "Connect scale" is listening. Your WeiHeng shows up as <b>IF_…</b>. If it never appears: allow <b>Nearby devices</b> for this app, turn <b>Location</b> on (Xiaomi needs it for BLE scans), and make sure the scale is on.</p>
+      <table class="hist"><thead><tr><th>Name</th><th>RSSI</th><th>Mfr keys</th><th>Payload</th><th>kg</th></tr></thead><tbody id="seenBody"><tr><td colspan="5" class="muted">Not listening.</td></tr></tbody></table>
+
+      <h3>Scale</h3>
+      <p class="help">WeiHeng WH-C06 / WH-C100 Bluetooth crane scale. No pairing needed: the app listens for its broadcasts (company ID 0x0100). Turn the scale on, press Connect scale, grant Bluetooth permission. ~10 readings/second.</p>
+      <p class="help">Rig: anchor one end to something immovable, the other to a strap, bar or handle. For pressing patterns put the scale inside a strap loop that goes under tension when you push.</p>
+    </section>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+  </div>
+
   <div class="tabs">
     <button class="tab active" data-view="workout"><span class="tab-icon">▶</span>WORKOUT</button>
     <button class="tab" data-view="remind"><span class="tab-icon">⏰</span>REMIND</button>
@@ -826,6 +975,7 @@
     <button class="tab" data-view="clock"><span class="tab-icon">◷</span>CLOCK</button>
     <button class="tab" data-view="summary"><span class="tab-icon">⊞</span>7-DAY</button>
     <button class="tab" data-view="settings"><span class="tab-icon">⚙</span>SETTINGS</button>
+    <button class="tab" data-view="force"><span class="tab-icon">⚡</span>FORCE</button>
   </div>
 </div>
 
@@ -1743,6 +1893,7 @@ function switchView(v, fromHistory = false) {
   if (v === 'library') renderLibrary();
   if (v === 'settings') renderCustomCats();
   if (v === 'summary') renderSummary();
+  if (v === 'force' && window.ForceLab) window.ForceLab.onShow();
   // Push a history state so back button comes here
   if (!fromHistory) {
     history.pushState({ view: v }, '', '');
@@ -2927,53 +3078,48 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   };
   reader.readAsText(f);
 });
-// ---- UY Force Lab merge import ----
-// Accepts { forceLab:true, sessions:[...] } from UY Force Lab. Appends (never replaces):
-// sessions are matched by id (one per day), sets deduped by id, exercises added to state.custom
-// with a kg-tracking type so getKgStats() picks peak force up as the exercise max.
-document.getElementById('btnMergeForceLab').onclick = () => document.getElementById('mergeForceLabFile').click();
-document.getElementById('mergeForceLabFile').addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(reader.result);
-      if (!parsed || !parsed.forceLab || !Array.isArray(parsed.sessions)) { toast("NOT A FORCE LAB FILE"); return; }
-      let addedSets = 0, addedEx = 0;
-      for (const inc of parsed.sessions) {
-        // one session per date: fold into whatever already exists for that day
-        let sess = state.history.find(h => h.date === inc.date);
-        if (!sess) {
-          sess = { id: inc.id, name: inc.name || "Force Lab", date: inc.date, source: "force-lab", exercises: [], note: inc.note || "" };
-          state.history.unshift(sess);
-        } else {
-          const nm = (inc.name || "Force Lab").trim(), dn = (sess.name || "").trim();
-          if (nm !== dn && !dn.split(" + ").map(x => x.trim()).includes(nm)) sess.name = dn ? `${dn} + ${nm}` : nm;
-        }
-        for (const incEx of inc.exercises) {
-          if (!findExerciseStrict(incEx.name)) {
-            state.custom.push({ name: incEx.name, track: "reps", category: "Force Lab" });
-            addedEx++;
-          }
-          let ex = sess.exercises.find(x => x.name === incEx.name);
-          if (!ex) { ex = { id: uid(), name: incEx.name, sets: [], note: "" }; sess.exercises.push(ex); }
-          for (const st of incEx.sets) {
-            if (ex.sets.some(x => x.id === st.id)) continue;
-            ex.sets.push({ id: st.id, weight: "", kg: st.kg, reps: st.reps, variation: st.variation || "iso", note: st.note || "" });
-            addedSets++;
-          }
-        }
-      }
-      sortHistory();
-      saveState();
-      toast(`MERGED ${addedSets} SETS` + (addedEx ? ` · ${addedEx} NEW EXERCISES` : ""));
-      renderWorkout();
-    } catch (err) { toast("INVALID FILE"); }
-    e.target.value = "";
-  };
-  reader.readAsText(f);
-});
+// ---- Force Lab (built-in) host API ----
+// The Force tab (www/force/force.js) calls these: shared exercise list and automatic
+// logging of every force set into that day's session (one session per date).
+window.GymLog = {
+  exerciseNames() {
+    // Force Lab's own (isometric / self-resisted) exercises first, then the rest of the library
+    const names = state.custom.filter(e => e.category === "Force Lab").map(e => e.name);
+    for (const cat in LIBRARY) for (const e of LIBRARY[cat]) names.push(e.name);
+    for (const e of state.custom) if (e.category !== "Force Lab") names.push(e.name);
+    return names;
+  },
+  addExercise(name) {
+    name = (name || "").trim(); if (!name || findExerciseStrict(name)) return false;
+    state.custom.push({ name, track: "reps", category: "Force Lab" }); saveState(); return true;
+  },
+  removeExercise(name) {
+    const i = state.custom.findIndex(e => e.name === name); if (i < 0) return false;
+    state.custom.splice(i, 1); saveState(); return true;
+  },
+  upsertForceSet(fs) {
+    // drop any previous copy (the date may have changed)
+    for (const h of state.history) for (const ex of h.exercises) { const i = ex.sets.findIndex(x => x.id === fs.id); if (i >= 0) ex.sets.splice(i, 1); }
+    for (const h of state.history) h.exercises = h.exercises.filter(ex => ex.sets.length || !/^fl-/.test(ex.id || "") );
+    this.addExercise(fs.exercise);
+    let sess = state.history.find(h => h.date === fs.date);
+    if (!sess) { sess = { id: "fl-" + fs.date, name: "Force Lab", date: fs.date, source: "force-lab", exercises: [], note: "" }; state.history.unshift(sess); }
+    else { const dn = (sess.name || "").trim(); if (dn && dn !== "Force Lab" && !dn.split(" + ").map(x => x.trim()).includes("Force Lab")) sess.name = dn + " + Force Lab"; else if (!dn) sess.name = "Force Lab"; }
+    let ex = sess.exercises.find(x => x.name === fs.exercise);
+    if (!ex) { ex = { id: "fl-" + uid(), name: fs.exercise, sets: [], note: "" }; sess.exercises.push(ex); }
+    ex.sets.push({ id: fs.id, weight: "", kg: fs.kg, reps: fs.reps, variation: fs.variation || "iso", note: fs.note || "" });
+    state.history = state.history.filter(h => h.exercises.length || h.source !== "force-lab");
+    sortHistory(); saveState();
+    if (currentView === 'history') renderHistory();
+  },
+  removeForceSet(id) {
+    for (const h of state.history) for (const ex of h.exercises) { const i = ex.sets.findIndex(x => x.id === id); if (i >= 0) ex.sets.splice(i, 1); }
+    for (const h of state.history) h.exercises = h.exercises.filter(ex => ex.sets.length || !/^fl-/.test(ex.id || ""));
+    state.history = state.history.filter(h => h.exercises.length || h.source !== "force-lab");
+    saveState();
+    if (currentView === 'history') renderHistory();
+  },
+};
 document.getElementById('btnConsolidate').onclick = () => {
   const dates = new Set(), dup = new Set();
   for (const h of state.history) { if (dates.has(h.date)) dup.add(h.date); dates.add(h.date); }
@@ -3495,5 +3641,7 @@ renderWorkout();
 })();
 </script>
 
+<link rel="stylesheet" href="force/force.css">
+<script type="module" src="force/force.js"></script>
 </body>
 </html>

@@ -4,18 +4,24 @@
   "private": true,
   "description": "UY Gym Log — offline gym logger with local exercise reminders",
   "scripts": {
-    "sync": "cap sync android",
+    "build:force": "vite build -c force/vite.config.ts",
+    "sync": "npm run build:force && cap sync android",
     "add:android": "cap add android"
   },
   "dependencies": {
+    "@capacitor-community/bluetooth-le": "^8.4.0",
     "@capacitor-community/text-to-speech": "^8.0.2",
     "@capacitor/android": "8.4.1",
     "@capacitor/core": "8.4.1",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/local-notifications": "8.2.0",
+    "@capacitor/preferences": "^8.0.1",
     "@capacitor/share": "^8.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.4.1"
+    "@capacitor/cli": "8.4.1",
+    "postcss-prefix-selector": "^2.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
   }
 }
