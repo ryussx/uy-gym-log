@@ -2496,6 +2496,12 @@ const swVoice = {
 };
 const TTS = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) || null;
 const TTS_NATIVE = !!(TTS && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+// Spoken count: 1…59, then "1 minute", 1…59, "2 minutes", …
+function swSpoken(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if (s === 0 && m > 0) return m === 1 ? '1 minute' : m + ' minutes';
+  return String(s);
+}
 function swSay(text, force) {
   if (TTS_NATIVE) {
     if (swVoice.busy && !force) return;
@@ -2522,7 +2528,7 @@ function swSpeakTick() {
   const sec = Math.floor((Date.now() - swStart + swElapsed) / 1000);
   if (sec === swVoice.lastSec || sec === 0) return;
   swVoice.lastSec = sec;
-  if (sec % swVoice.every === 0) swSay(String(sec), false);
+  if (sec % swVoice.every === 0) swSay(swSpoken(sec), false);
 }
 function swVoiceRender() {
   const b = document.getElementById('btnSwVoice');
