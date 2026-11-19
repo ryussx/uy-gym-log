@@ -577,6 +577,13 @@ function bindUI() {
   $("btnCsv").onclick = () => exportText(`uy-force-lab-${today()}.csv`, toCSV(sets), "text/csv");
   $("btnJson").onclick = () => exportText(`uy-force-lab-${today()}.json`, JSON.stringify(sets, null, 1), "application/json");
   $<HTMLInputElement>("voiceOn").onchange = (e) => (voice.enabled = (e.target as HTMLInputElement).checked);
+  voice.rate = Number(pref("ufl.voiceRate", "1.2")) || 1.2; voice.pitch = Number(pref("ufl.voicePitch", "1")) || 1;
+  const bindVoiceNum = (id: string, key: string, set: (v: number) => void, cur: number) => {
+    const el = $<HTMLInputElement>(id); el.value = String(cur); $(id + "Val").textContent = cur.toFixed(1) + "×";
+    el.oninput = () => { const v = Number(el.value); set(v); localStorage.setItem(key, String(v)); $(id + "Val").textContent = v.toFixed(1) + "×"; };
+  };
+  bindVoiceNum("voiceRate", "ufl.voiceRate", (v) => (voice.rate = v), voice.rate);
+  bindVoiceNum("voicePitch", "ufl.voicePitch", (v) => (voice.pitch = v), voice.pitch);
   $<HTMLInputElement>("beepOn").onchange = (e) => (beepOn = (e.target as HTMLInputElement).checked);
   $<HTMLInputElement>("calloutEvery").value = String(calloutEvery);
   $<HTMLInputElement>("calloutEvery").onchange = (e) => { calloutEvery = Math.max(1, Number((e.target as HTMLInputElement).value) || 1); localStorage.setItem("ufl.calloutEvery", String(calloutEvery)); };

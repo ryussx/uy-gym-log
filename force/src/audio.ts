@@ -60,6 +60,8 @@ export class Voice {
     const n = speechSynthesis.getVoices().length; return n ? `${n} voices` : "no voices installed";
   }
   private nativeBusy = false;
+  rate = 1.2;
+  pitch = 1;
   say(text: string, priority = false, allowRepeat = false) {
     if (!this.enabled) return;
     this.onSpeak(text);
@@ -67,7 +69,7 @@ export class Voice {
       if (this.nativeBusy && !priority) return;
       this.nativeBusy = true;
       const go = priority ? TextToSpeech.stop().catch(() => {}) : Promise.resolve();
-      go.then(() => TextToSpeech.speak({ text, lang: "en-US", rate: 1.2, pitch: 1, volume: 1, category: "ambient" }))
+      go.then(() => TextToSpeech.speak({ text, lang: "en-US", rate: this.rate, pitch: this.pitch, volume: 1, category: "ambient" }))
         .catch(() => {}).finally(() => { this.nativeBusy = false; });
       return;
     }
@@ -78,7 +80,7 @@ export class Voice {
       if (priority) speechSynthesis.cancel();
       speechSynthesis.resume();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.2; u.lang = "en-US"; if (this.voice) u.voice = this.voice;
+      u.rate = this.rate; u.pitch = this.pitch; u.lang = "en-US"; if (this.voice) u.voice = this.voice;
       this.keep.push(u); if (this.keep.length > 8) this.keep.shift();
       u.onend = () => { const i = this.keep.indexOf(u); if (i >= 0) this.keep.splice(i, 1); };
       speechSynthesis.speak(u);

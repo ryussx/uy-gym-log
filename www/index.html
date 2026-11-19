@@ -935,6 +935,10 @@
     <section id="tab-settings" class="fl-tab">
       <h3>Voice & sound</h3>
       <label class="inline"><input type="checkbox" id="voiceOn" checked /> Voice callouts (force, zone, phases) <button id="btnTestVoice" class="sm ghost" type="button" style="margin-left:8px">Test voice</button> <span id="voiceStatus" class="muted"></span></label>
+      <div class="row" style="align-items:center">
+        <label style="flex:1;min-width:140px">Voice speed <span id="voiceRateVal" class="muted"></span><input type="range" id="voiceRate" min="0.5" max="2" step="0.1" /></label>
+        <label style="flex:1;min-width:140px">Voice pitch <span id="voicePitchVal" class="muted"></span><input type="range" id="voicePitch" min="0.5" max="2" step="0.1" /></label>
+      </div>
       <label class="inline"><input type="checkbox" id="beepOn" checked /> Beeps</label>
       <label class="inline"><input type="checkbox" id="secBeep" /> Beep every second during work</label>
       <label class="inline"><input type="checkbox" id="secCount" /> Count seconds aloud (1, 2, 3…)</label>
