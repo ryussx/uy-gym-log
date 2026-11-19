@@ -8,6 +8,7 @@ import { store } from "./store";
 import { exportText, toCSV, samplesCSV, isoDate } from "./export";
 import { CamPreview } from "./camera";
 import { host, toHostSet, seedHostExercises } from "./bridge";
+import { attachPicker } from "./picker";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -59,6 +60,22 @@ async function init() {
   voice.enabled = $<HTMLInputElement>("voiceOn").checked;
 }
 
+/** Exercises used in Force Lab (sets or maxes), most recently used first. */
+function recentForceExercises(): string[] {
+  const last = new Map<string, number>();
+  for (const st of sets) last.set(st.exercise, Math.max(last.get(st.exercise) ?? 0, st.startedAt));
+  for (const k of Object.keys(maxesCache)) { const ex = k.split("|")[0]; if (!last.has(ex)) last.set(ex, 0); }
+  return [...last.entries()].filter(([e]) => exercises.includes(e)).sort((a, b) => b[1] - a[1]).map(([e]) => e);
+}
+let maxesCache: Record<string, unknown> = {};
+
+async function createExercise(n: string): Promise<boolean> {
+  n = n.trim(); if (!n) return false;
+  if (!exercises.includes(n)) { const h = host(); if (h) { h.addExercise(n); exercises = h.exerciseNames(); } else { exercises.push(n); await store.saveExercises(exercises); } }
+  fillExerciseSelects(); renderSettings();
+  return true;
+}
+
 function fillExerciseSelects() {
   for (const id of ["exercise", "maxExercise"]) {
     const sel = $<HTMLSelectElement>(id);
@@ -91,7 +108,7 @@ async function refreshExerciseContext() {
   const mine = sets.filter((s) => s.exercise === ex && s.side === side);
   lastSetForExercise = mine.length ? mine[mine.length - 1] : null;
   bestOutputForExercise = mine.reduce((m, s) => Math.max(m, s.output), 0);
-  const maxes = await store.maxes();
+  const maxes = await store.maxes(); maxesCache = maxes;
   currentMax = maxes[`${ex}|${side}`]?.kg ?? 0;
   $("zoneMax").textContent = currentMax ? `(max ${currentMax} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)";
   $("sGoal").textContent = bestOutputForExercise ? fmt(bestOutputForExercise) : "–";
@@ -534,6 +551,9 @@ function bindUI() {
   $("btnStop").onclick = stopSet;
   $<HTMLInputElement>("simEffort").oninput = (e) => { const v = Number((e.target as HTMLInputElement).value); if (sim) sim.effort = v; $("simVal").textContent = String(v); };
   $("exercise").onchange = refreshExerciseContext;
+  attachPicker($<HTMLSelectElement>("exercise"), { recent: recentForceExercises, all: () => exercises, onCreate: createExercise });
+  attachPicker($<HTMLSelectElement>("maxExercise"), { recent: recentForceExercises, all: () => exercises, onCreate: createExercise });
+  attachPicker($<HTMLSelectElement>("histExercise"), { recent: recentForceExercises, all: () => exercises, allOption: { value: "", label: "All exercises" } });
   $("btnNewEx").onclick = () => { $("newExBox").classList.remove("hidden"); $<HTMLInputElement>("newExName").focus(); };
   $("btnNewExCancel").onclick = () => { $("newExBox").classList.add("hidden"); $<HTMLInputElement>("newExName").value = ""; };
   const saveNewEx = async () => {

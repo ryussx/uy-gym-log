@@ -3083,9 +3083,10 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 // logging of every force set into that day's session (one session per date).
 window.GymLog = {
   exerciseNames() {
-    const names = [];
+    // Force Lab's own (isometric / self-resisted) exercises first, then the rest of the library
+    const names = state.custom.filter(e => e.category === "Force Lab").map(e => e.name);
     for (const cat in LIBRARY) for (const e of LIBRARY[cat]) names.push(e.name);
-    for (const e of state.custom) names.push(e.name);
+    for (const e of state.custom) if (e.category !== "Force Lab") names.push(e.name);
     return names;
   },
   addExercise(name) {
