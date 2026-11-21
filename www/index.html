@@ -961,6 +961,8 @@
 
       <h3>Connection</h3>
       <label class="inline"><input type="checkbox" id="autoConnect" checked /> Auto-connect — listen for the scale as soon as the app opens</label>
+      <label class="inline"><input type="checkbox" id="keepAwake" checked /> Keep the screen on while connected (Android stops Bluetooth scans when the screen sleeps)</label>
+      <p class="help">If the scale keeps dropping: Android Settings → Apps → this app → Battery → <b>No restrictions</b>, and allow <b>Autostart</b>. The app restarts its scan by itself when the scale goes quiet for 8 s (at most once per 30 s).</p>
 
       <h3>Scan debug</h3>
       <p class="help">Everything the phone hears while "Connect scale" is listening. Your WeiHeng shows up as <b>IF_…</b>. If it never appears: allow <b>Nearby devices</b> for this app, turn <b>Location</b> on (Xiaomi needs it for BLE scans), and make sure the scale is on.</p>

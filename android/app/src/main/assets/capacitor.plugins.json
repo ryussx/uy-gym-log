@@ -4,6 +4,10 @@
 		"classpath": "com.capacitorjs.community.plugins.bluetoothle.BluetoothLe"
 	},
 	{
+		"pkg": "@capacitor-community/keep-awake",
+		"classpath": "com.getcapacitor.community.keepawake.KeepAwakePlugin"
+	},
+	{
 		"pkg": "@capacitor-community/text-to-speech",
 		"classpath": "com.getcapacitor.community.tts.TextToSpeechPlugin"
 	},

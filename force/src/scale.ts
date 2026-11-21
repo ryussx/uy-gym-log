@@ -8,7 +8,7 @@
 //   - byte 14: high nibble = stable flag, low nibble = unit code
 //   - ~8-10 packets per second
 
-import { BleClient, type ScanResult } from "@capacitor-community/bluetooth-le";
+import { BleClient, ScanMode, type ScanResult } from "@capacitor-community/bluetooth-le";
 import { Capacitor } from "@capacitor/core";
 
 export interface ForceSample {
@@ -103,6 +103,12 @@ export class BleScale extends BaseSource {
   seen = new Map<string, SeenDevice>();
   onSeen: (d: SeenDevice) => void = () => {};
 
+  private lastScanStart = 0;
+  private healTimer: ReturnType<typeof setInterval> | null = null;
+  /** Timestamp of the last packet from the scale. */
+  lastPacketAt = 0;
+  restarts = 0;
+
   async start() {
     if (!Capacitor.isNativePlatform()) {
       throw new Error("Bluetooth scanning needs the Android build. Use the simulator in the browser.");
@@ -110,10 +116,25 @@ export class BleScale extends BaseSource {
     await BleClient.initialize({ androidNeverForLocation: true });
     const enabled = await BleClient.isEnabled().catch(() => true);
     if (!enabled) { try { await BleClient.requestEnable(); } catch { throw new Error("Bluetooth is off — turn it on and try again."); } }
+    await this.beginScan();
+    // Self-healing: Android silently ends long scans (≈30 min, screen off, OEM battery
+    // savers). If nothing has been heard from the scale for a while, restart the scan —
+    // never more than once per 30 s, which keeps us under Android's 5-scans-per-30-s throttle.
+    if (this.healTimer) clearInterval(this.healTimer);
+    this.healTimer = setInterval(() => {
+      if (!this.scanning) return;
+      const silent = Date.now() - Math.max(this.lastPacketAt, this.lastScanStart);
+      if (silent > 8000 && Date.now() - this.lastScanStart > 30000) this.beginScan().catch(() => {});
+    }, 2000);
+  }
+
+  private async beginScan() {
+    if (this.scanning) { try { await BleClient.stopLEScan(); } catch { /* ignore */ } await new Promise((r) => setTimeout(r, 300)); this.restarts++; }
     this.setStatus("scanning");
     this.scanning = true;
+    this.lastScanStart = Date.now();
     await BleClient.requestLEScan(
-      { allowDuplicates: true },
+      { allowDuplicates: true, scanMode: ScanMode.SCAN_MODE_LOW_LATENCY },
       (r: ScanResult) => {
         const name = r.localName ?? r.device.name ?? "";
         const md = r.manufacturerData ?? {};
@@ -128,12 +149,14 @@ export class BleScale extends BaseSource {
         const d: SeenDevice = { id: r.device.deviceId, name, rssi: r.rssi ?? 0, keys: keys.join(","), hex: payload ? hex(payload) : (r.rawAdvertisement ? hex(r.rawAdvertisement).slice(0, 60) : ""), kg, t: Date.now() };
         this.seen.set(d.id, d); this.onSeen(d);
         if (kg === null) return;
+        this.lastPacketAt = Date.now();
         this.emitRaw(kg);
       },
     );
   }
 
   async stop() {
+    if (this.healTimer) { clearInterval(this.healTimer); this.healTimer = null; }
     if (this.scanning) {
       try { await BleClient.stopLEScan(); } catch { /* ignore */ }
     }

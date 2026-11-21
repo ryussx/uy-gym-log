@@ -5,6 +5,7 @@ import { ForceChart } from "./chart";
 import { buildProtocol, expand, ProtocolRunner, type Phase } from "./protocols";
 import { sounds, Voice, spokenCount } from "./audio";
 import { Capacitor } from "@capacitor/core";
+import { KeepAwake } from "@capacitor-community/keep-awake";
 import { store } from "./store";
 import { exportText, toCSV, samplesCSV, isoDate } from "./export";
 import { CamPreview } from "./camera";
@@ -148,15 +149,22 @@ async function connect(src: ForceSource) {
 }
 
 let curStatus: ScaleStatus = "idle";
+function keepAwakeEnabled() { return localStorage.getItem("ufl.keepAwake") !== "0"; }
+function applyKeepAwake() {
+  if (!Capacitor.isNativePlatform()) return;
+  const on = keepAwakeEnabled() && (curStatus === "live" || curStatus === "scanning" || curStatus === "lost");
+  (on ? KeepAwake.keepAwake() : KeepAwake.allowSleep()).catch(() => {});
+}
 function setStatus(s: ScaleStatus) {
   curStatus = s;
+  applyKeepAwake();
   $("statusDot").className = `dot ${s}`;
   $("statusPill").className = `pill ${s}`;
   const labels: Record<ScaleStatus, string> = {
     idle: "Not connected",
     scanning: "Listening for scale… turn it on / pull the hook",
     live: `${source?.name ?? "Scale"} connected ✓`,
-    lost: "Signal lost — is the scale still on?",
+    lost: "Signal lost — reconnecting…",
     error: "Error",
   };
   $("statusText").textContent = labels[s];
@@ -598,6 +606,8 @@ function bindUI() {
   $("btnCsv").onclick = () => exportText(`uy-force-lab-${today()}.csv`, toCSV(sets), "text/csv");
   $("btnJson").onclick = () => exportText(`uy-force-lab-${today()}.json`, JSON.stringify(sets, null, 1), "application/json");
   $<HTMLInputElement>("voiceOn").onchange = (e) => (voice.enabled = (e.target as HTMLInputElement).checked);
+  $<HTMLInputElement>("keepAwake").checked = keepAwakeEnabled();
+  $<HTMLInputElement>("keepAwake").onchange = (e) => { localStorage.setItem("ufl.keepAwake", (e.target as HTMLInputElement).checked ? "1" : "0"); applyKeepAwake(); };
   $<HTMLInputElement>("autoConnect").checked = autoConnectEnabled();
   $<HTMLInputElement>("autoConnect").onchange = (e) => { localStorage.setItem("ufl.autoConnect", (e.target as HTMLInputElement).checked ? "1" : "0"); autoTried = false; autoConnect(); };
   // resume listening when the app comes back to the foreground
