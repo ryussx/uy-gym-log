@@ -792,6 +792,14 @@
     </div>
 
     <div class="card">
+      <h3>RENAME EXERCISE</h3>
+      <div class="meta">Renames it everywhere: library, templates, every past session, and the Force tab's history and maxes.</div>
+      <select id="renameFrom" style="margin-top:8px;"></select>
+      <input type="text" id="renameTo" placeholder="New name" style="margin-top:8px;">
+      <button class="btn ghost" id="btnRenameEx" style="margin-top:8px;">RENAME</button>
+    </div>
+
+    <div class="card">
       <h3>WIPE</h3>
       <div class="meta">Delete all history (cannot be undone)</div>
       <button class="btn danger" id="btnWipe">DELETE EVERYTHING</button>
@@ -1725,6 +1733,52 @@ const TEMPLATES = [
 const STORE_KEY = "uy_gym_log_v2";
 let state = loadState();
 let currentView = "workout";
+// ---- exercise renames (persisted in state.renames = { oldName: newName }) ----
+// Built-in library names that were renamed are removed from LIBRARY and templates point at the new name.
+function applyRenames() {
+  const r = state.renames || {};
+  for (const old in r) {
+    for (const cat in LIBRARY) LIBRARY[cat] = LIBRARY[cat].filter(e => e.name !== old);
+    for (const t of TEMPLATES) t.exercises = t.exercises.map(n => n === old ? r[old] : n);
+  }
+}
+applyRenames();
+
+function renameExerciseEverywhere(oldName, newName) {
+  oldName = (oldName || '').trim(); newName = (newName || '').trim();
+  if (!oldName || !newName || oldName === newName) return false;
+  const exists = findExerciseStrict(newName);
+  if (exists && !confirm(`"${newName}" already exists. Merge "${oldName}" into it? All history from both will be combined under "${newName}".`)) return false;
+  const def = findExercise(oldName);
+  let builtIn = false;
+  for (const cat in LIBRARY) if (LIBRARY[cat].some(e => e.name === oldName)) { builtIn = true; LIBRARY[cat] = LIBRARY[cat].filter(e => e.name !== oldName); }
+  if (!state.renames) state.renames = {};
+  if (builtIn) state.renames[oldName] = newName;
+  // library entry
+  const ci = state.custom.findIndex(e => e.name === oldName);
+  if (exists) { if (ci >= 0) state.custom.splice(ci, 1); }
+  else if (ci >= 0) state.custom[ci].name = newName;
+  else state.custom.push({ name: newName, track: def.track, category: def.category || 'Custom' });
+  // templates
+  for (const t of TEMPLATES) t.exercises = t.exercises.map(n => n === oldName ? newName : n);
+  // sessions (history + active): rename, and merge duplicates within a session
+  const fix = (sess) => {
+    if (!sess) return;
+    for (const ex of sess.exercises) if (ex.name === oldName) ex.name = newName;
+    const merged = [];
+    for (const ex of sess.exercises) {
+      const dup = ex.name === newName ? merged.find(m => m.name === newName) : null;
+      if (dup) { dup.sets.push(...ex.sets); if (ex.note) dup.note = [dup.note, ex.note].filter(Boolean).join(' · '); }
+      else merged.push(ex);
+    }
+    sess.exercises = merged;
+  };
+  for (const h of state.history) fix(h);
+  fix(state.active);
+  saveState();
+  if (window.ForceLab && window.ForceLab.renameExercise) window.ForceLab.renameExercise(oldName, newName);
+  return true;
+}
 let pickerCallback = null;
 let activeHistoryId = null;
 let currentExportFormat = "bullets";
@@ -1903,6 +1957,7 @@ function switchView(v, fromHistory = false) {
   if (v === 'library') renderLibrary();
   if (v === 'settings') renderCustomCats();
   if (v === 'summary') renderSummary();
+  if (v === 'settings') fillRenameSelect();
   if (v === 'force' && window.ForceLab) window.ForceLab.onShow();
   // Push a history state so back button comes here
   if (!fromHistory) {
@@ -3116,6 +3171,7 @@ window.GymLog = {
     name = (name || "").trim(); if (!name || findExerciseStrict(name)) return false;
     state.custom.push({ name, track: "reps", category: "Force Lab" }); saveState(); return true;
   },
+  renameExercise(oldName, newName) { return renameExerciseEverywhere(oldName, newName); },
   removeExercise(name) {
     const i = state.custom.findIndex(e => e.name === name); if (i < 0) return false;
     state.custom.splice(i, 1); saveState(); return true;
@@ -3158,6 +3214,20 @@ function findExerciseStrict(name) {
   return state.custom.some(e => e.name === name);
 }
 
+function fillRenameSelect() {
+  const sel = document.getElementById('renameFrom'); if (!sel) return;
+  const names = window.GymLog.exerciseNames().slice().sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+}
+document.getElementById('btnRenameEx').onclick = () => {
+  const from = document.getElementById('renameFrom').value, to = document.getElementById('renameTo').value.trim();
+  if (!to) { toast('TYPE A NEW NAME'); return; }
+  if (renameExerciseEverywhere(from, to)) {
+    document.getElementById('renameTo').value = '';
+    fillRenameSelect(); toast('RENAMED');
+    if (state.active) renderExerciseList();
+  }
+};
 document.getElementById('btnWipe').onclick = () => {
   if (!confirm('Delete ALL workout history and custom exercises? This cannot be undone.')) return;
   if (!confirm('Are you absolutely sure?')) return;

@@ -47,6 +47,19 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
   repeaters: [{ key: "reps", label: "reps", def: 6 }, { key: "hold", label: "on s", def: 10 }, { key: "rest", label: "off s", def: 20 }],
 };
 
+// ---------- rename ----------
+async function renameExerciseLocal(oldName: string, newName: string) {
+  const h = host();
+  if (h) { if (!h.renameExercise(oldName, newName)) return; exercises = h.exerciseNames(); }
+  else { await applyRenameToForceData(oldName, newName); exercises = await store.exercises(); }
+  fillExerciseSelects(); renderSettings(); renderHistory(); await refreshExerciseContext();
+}
+async function applyRenameToForceData(oldName: string, newName: string) {
+  await store.renameExercise(oldName, newName);
+  sets = await store.sets();
+  if ($<HTMLSelectElement>("exercise").value === oldName) { fillExerciseSelects(); $<HTMLSelectElement>("exercise").value = newName; }
+}
+
 // ---------- init ----------
 async function init() {
   seedHostExercises();
@@ -508,7 +521,11 @@ async function renderSettings() {
     await store.deleteMax(b.dataset.mdel!);
     renderSettings(); refreshExerciseContext();
   }));
-  $("exList").innerHTML = exercises.map((e) => `<span>${esc(e)}<button data-xdel="${esc(e)}">✕</button></span>`).join("");
+  $("exList").innerHTML = exercises.map((e) => `<span>${esc(e)}<button data-xren="${esc(e)}" title="Rename">✎</button><button data-xdel="${esc(e)}">✕</button></span>`).join("");
+  $("exList").querySelectorAll<HTMLButtonElement>("button[data-xren]").forEach((b) => (b.onclick = async () => {
+    const old = b.dataset.xren!; const n = prompt(`Rename "${old}" to:`, old); if (!n || n.trim() === old) return;
+    await renameExerciseLocal(old, n.trim());
+  }));
   $("exList").querySelectorAll<HTMLButtonElement>("button[data-xdel]").forEach((b) => (b.onclick = async () => {
     const h = host(); if (h) { if (!h.removeExercise(b.dataset.xdel!)) { alert("Built-in Gym Log exercises can't be removed here."); return; } exercises = h.exerciseNames(); } else { exercises = exercises.filter((e) => e !== b.dataset.xdel); await store.saveExercises(exercises); }
     fillExerciseSelects(); renderSettings();
@@ -681,4 +698,8 @@ function esc(s: string) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 init();
 
 // Host hook: called by Gym Log when the Force view becomes visible.
-(window as any).ForceLab = { onShow() { chart.resize(); autoConnect(); } };
+(window as any).ForceLab = {
+  onShow() { chart.resize(); autoConnect(); },
+  // called by the host after it renamed an exercise in its own data
+  renameExercise(oldName: string, newName: string) { applyRenameToForceData(oldName, newName).then(async () => { exercises = host()?.exerciseNames() ?? exercises; fillExerciseSelects(); renderSettings(); renderHistory(); await refreshExerciseContext(); }); },
+};

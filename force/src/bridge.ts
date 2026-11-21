@@ -8,6 +8,7 @@ export interface GymLogHost {
   exerciseNames(): string[];
   addExercise(name: string): boolean;        // true if added (false if it already existed)
   removeExercise(name: string): boolean;     // only custom exercises can be removed
+  renameExercise(oldName: string, newName: string): boolean;
   upsertForceSet(s: HostSet): void;
   removeForceSet(id: string): void;
 }
