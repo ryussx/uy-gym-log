@@ -959,6 +959,9 @@
       <div id="exList" class="exlist"></div>
       <div class="row"><input type="text" id="newEx" placeholder="New exercise name" /><button id="btnAddEx" class="sm">Add</button></div>
 
+      <h3>Connection</h3>
+      <label class="inline"><input type="checkbox" id="autoConnect" checked /> Auto-connect — listen for the scale as soon as the app opens</label>
+
       <h3>Scan debug</h3>
       <p class="help">Everything the phone hears while "Connect scale" is listening. Your WeiHeng shows up as <b>IF_…</b>. If it never appears: allow <b>Nearby devices</b> for this app, turn <b>Location</b> on (Xiaomi needs it for BLE scans), and make sure the scale is on.</p>
       <table class="hist"><thead><tr><th>Name</th><th>RSSI</th><th>Mfr keys</th><th>Payload</th><th>kg</th></tr></thead><tbody id="seenBody"><tr><td colspan="5" class="muted">Not listening.</td></tr></tbody></table>

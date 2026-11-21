@@ -4,6 +4,7 @@ import { SetRecorder, computeMetrics, criticalForce, detectReps, repsFor, perfor
 import { ForceChart } from "./chart";
 import { buildProtocol, expand, ProtocolRunner, type Phase } from "./protocols";
 import { sounds, Voice, spokenCount } from "./audio";
+import { Capacitor } from "@capacitor/core";
 import { store } from "./store";
 import { exportText, toCSV, samplesCSV, isoDate } from "./export";
 import { CamPreview } from "./camera";
@@ -162,6 +163,25 @@ function setStatus(s: ScaleStatus) {
   if (s !== "live") $("statusKg").textContent = "";
   const btn = $<HTMLButtonElement>("btnConnect");
   btn.textContent = s === "live" || s === "scanning" ? "Disconnect" : "Connect scale";
+}
+
+
+// ---------- auto-connect ----------
+// On the phone the app listens for the scale by itself (Settings → "Auto-connect");
+// the Connect button is only needed to restart after an error or a Disconnect.
+function autoConnectEnabled() { return localStorage.getItem("ufl.autoConnect") !== "0"; }
+let autoTried = false;
+let manualOff = false; // user pressed Disconnect: stay off until they press Connect again
+function autoConnect() {
+  if (!autoConnectEnabled() || !Capacitor.isNativePlatform()) return;
+  if (source instanceof BleScale || sim) return;
+  if (manualOff) return;
+  if (autoTried && curStatus === "error") return; // don't loop on a hard error (permission denied, BT off)
+  autoTried = true;
+  const b = new BleScale();
+  b.onSeen = () => renderSeen(b);
+  $("simPanel").classList.add("hidden");
+  connect(b);
 }
 
 // ---------- zone feedback ----------
@@ -498,8 +518,9 @@ function bindUI() {
   document.querySelectorAll<HTMLButtonElement>(".fl-tabs button").forEach((b) => (b.onclick = () => switchTab(b.dataset.tab!)));
   $("btnConnect").onclick = async () => {
     if (source instanceof BleScale && (curStatus === "live" || curStatus === "scanning")) {
-      await source.stop(); source = null; setStatus("idle"); return;
+      await source.stop(); source = null; setStatus("idle"); manualOff = true; return;
     }
+    manualOff = false;
     $("simPanel").classList.add("hidden"); sim = null;
     const b = new BleScale();
     b.onSeen = () => renderSeen(b);
@@ -577,6 +598,10 @@ function bindUI() {
   $("btnCsv").onclick = () => exportText(`uy-force-lab-${today()}.csv`, toCSV(sets), "text/csv");
   $("btnJson").onclick = () => exportText(`uy-force-lab-${today()}.json`, JSON.stringify(sets, null, 1), "application/json");
   $<HTMLInputElement>("voiceOn").onchange = (e) => (voice.enabled = (e.target as HTMLInputElement).checked);
+  $<HTMLInputElement>("autoConnect").checked = autoConnectEnabled();
+  $<HTMLInputElement>("autoConnect").onchange = (e) => { localStorage.setItem("ufl.autoConnect", (e.target as HTMLInputElement).checked ? "1" : "0"); autoTried = false; autoConnect(); };
+  // resume listening when the app comes back to the foreground
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && (curStatus === "idle" || curStatus === "error")) { autoTried = false; autoConnect(); } });
   voice.rate = Number(pref("ufl.voiceRate", "1.2")) || 1.2; voice.pitch = Number(pref("ufl.voicePitch", "1")) || 1;
   const bindVoiceNum = (id: string, key: string, set: (v: number) => void, cur: number) => {
     const el = $<HTMLInputElement>(id); el.value = String(cur); $(id + "Val").textContent = cur.toFixed(1) + "×";
@@ -633,4 +658,4 @@ function esc(s: string) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 init();
 
 // Host hook: called by Gym Log when the Force view becomes visible.
-(window as any).ForceLab = { onShow() { chart.resize(); } };
+(window as any).ForceLab = { onShow() { chart.resize(); autoConnect(); } };
