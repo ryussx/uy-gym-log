@@ -179,7 +179,8 @@ function setStatus(s: ScaleStatus) {
 // the Connect button is only needed to restart after an error or a Disconnect.
 function autoConnectEnabled() { return localStorage.getItem("ufl.autoConnect") !== "0"; }
 let autoTried = false;
-let manualOff = false; // user pressed Disconnect: stay off until they press Connect again
+let manualOff = false;
+let pausedInBackground = false; // user pressed Disconnect: stay off until they press Connect again
 function autoConnect() {
   if (!autoConnectEnabled() || !Capacitor.isNativePlatform()) return;
   if (source instanceof BleScale || sim) return;
@@ -611,7 +612,14 @@ function bindUI() {
   $<HTMLInputElement>("autoConnect").checked = autoConnectEnabled();
   $<HTMLInputElement>("autoConnect").onchange = (e) => { localStorage.setItem("ufl.autoConnect", (e.target as HTMLInputElement).checked ? "1" : "0"); autoTried = false; autoConnect(); };
   // resume listening when the app comes back to the foreground
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && (curStatus === "idle" || curStatus === "error")) { autoTried = false; autoConnect(); } });
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "hidden") {
+      // Don't burn CPU/battery scanning while the app is in the background (a set in progress keeps it).
+      if (source instanceof BleScale && !recorder.recording) { await source.stop(); source = null; setStatus("idle"); pausedInBackground = true; }
+      return;
+    }
+    if (pausedInBackground || curStatus === "idle" || curStatus === "error") { pausedInBackground = false; autoTried = false; autoConnect(); }
+  });
   voice.rate = Number(pref("ufl.voiceRate", "1.2")) || 1.2; voice.pitch = Number(pref("ufl.voicePitch", "1")) || 1;
   const bindVoiceNum = (id: string, key: string, set: (v: number) => void, cur: number) => {
     const el = $<HTMLInputElement>(id); el.value = String(cur); $(id + "Val").textContent = cur.toFixed(1) + "×";
@@ -654,7 +662,12 @@ function bindUI() {
   };
 }
 
+let seenRenderAt = 0;
 function renderSeen(b: BleScale) {
+  const now = Date.now();
+  if (now - seenRenderAt < 1000) return;
+  if ($("tab-settings").classList.contains("active") === false) return;
+  seenRenderAt = now;
   const rows = [...b.seen.values()].sort((a, c) => c.t - a.t).slice(0, 12);
   $("seenBody").innerHTML = rows.map((d) => `<tr><td>${esc(d.name || "(no name)")}<br><small class="muted">${esc(d.id)}</small></td><td>${d.rssi}</td><td>${esc(d.keys || "–")}</td><td style="white-space:normal;font-family:monospace;font-size:11px">${esc(d.hex || "–")}</td><td>${d.kg === null ? "–" : d.kg.toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">Listening… nothing heard yet.</td></tr>`;
 }
