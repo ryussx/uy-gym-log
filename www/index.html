@@ -794,7 +794,8 @@
     <div class="card">
       <h3>RENAME EXERCISE</h3>
       <div class="meta">Renames it everywhere: library, templates, every past session, and the Force tab's history and maxes.</div>
-      <select id="renameFrom" style="margin-top:8px;"></select>
+      <input type="text" id="renameSearch" placeholder="Search exercise…" style="margin-top:8px;">
+      <select id="renameFrom" size="6" style="margin-top:8px;"></select>
       <input type="text" id="renameTo" placeholder="New name" style="margin-top:8px;">
       <button class="btn ghost" id="btnRenameEx" style="margin-top:8px;">RENAME</button>
     </div>
@@ -3216,9 +3217,13 @@ function findExerciseStrict(name) {
 
 function fillRenameSelect() {
   const sel = document.getElementById('renameFrom'); if (!sel) return;
-  const names = window.GymLog.exerciseNames().slice().sort((a, b) => a.localeCompare(b));
-  sel.innerHTML = names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  const q = (document.getElementById('renameSearch').value || '').trim().toLowerCase();
+  const cur = sel.value;
+  const names = window.GymLog.exerciseNames().filter(n => !q || n.toLowerCase().includes(q)).sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('') || '<option disabled>No match</option>';
+  if (names.includes(cur)) sel.value = cur; else if (names.length) sel.selectedIndex = 0;
 }
+document.getElementById('renameSearch').oninput = fillRenameSelect;
 document.getElementById('btnRenameEx').onclick = () => {
   const from = document.getElementById('renameFrom').value, to = document.getElementById('renameTo').value.trim();
   if (!to) { toast('TYPE A NEW NAME'); return; }
