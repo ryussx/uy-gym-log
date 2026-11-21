@@ -38,7 +38,7 @@ button.big { padding: 16px; font-size: 18px; flex: 1; }
 
 .row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; }
 .row label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); flex: 1; min-width: 140px; }
-select, input[type="number"], input[type="text"] { background: var(--panel); color: var(--text); border: 1px solid #2f333a; border-radius: 8px; padding: 9px 10px; font-size: 14px; width: 100%; }
+select, input[type="number"], input[type="text"] { background: var(--panel); color: var(--text); border: 1px solid #2f333a; border-radius: 8px; padding: 9px 10px; font-size: 16px; width: 100%; }
 input[type="number"] { width: 70px; }
 .params { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
 .params label { display: flex; flex-direction: column; font-size: 11px; color: var(--muted); min-width: 0; flex: 0; }
@@ -48,7 +48,7 @@ label { text-transform: none; letter-spacing: 0; font-weight: 500; }
 label.inline { display: flex; flex-direction: row; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; color: var(--text); }
 label.inline input[type="checkbox"] { width: auto; }
 input[type="checkbox"] { width: auto; }
-textarea { background: var(--panel); color: var(--text); border: 1px solid #2f333a; border-radius: 8px; padding: 9px 10px; font-size: 14px; width: 100%; }
+textarea { background: var(--panel); color: var(--text); border: 1px solid #2f333a; border-radius: 8px; padding: 9px 10px; font-size: 16px; width: 100%; }
 .row label.inline { flex: initial; min-width: 0; }
 
 .zonebar { display: flex; align-items: center; gap: 6px; font-size: 13px; background: var(--panel); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -133,3 +133,6 @@ h3 { margin: 18px 0 6px; font-size: 15px; color: var(--muted); text-transform: u
 .picker-item { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-radius: 8px; padding: 11px 10px; font-size: 15px; font-weight: 500; }
 .picker-item:active { background: var(--panel2); }
 .picker-create { color: var(--accent2); }
+
+input, select, textarea { font-size: 16px; }
+input[type="date"], input[type="range"] { font-size: 16px; }
