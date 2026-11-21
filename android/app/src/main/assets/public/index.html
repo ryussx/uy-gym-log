@@ -250,6 +250,7 @@
   .icon-btn:hover { color: var(--ink); border-color: var(--ink); }
 
   .sets-list { padding: 10px 14px; }
+  .set-time { font-size: 10px; color: var(--dim); letter-spacing: .1em; margin: -4px 0 6px 30px; }
   .set-row {
     display: flex;
     gap: 6px;
@@ -2091,12 +2092,14 @@ function renderSet(eIdx, sIdx, s, track) {
       <div class="set-num">${sIdx + 1}</div>
       ${varSel}${kgField}${extra}
       <button class="del-set" onclick="removeSet(${eIdx},${sIdx})">✕</button>
-    </div>
+    </div>${setTimeText(s) ? `<div class="set-time">${setTimeText(s)}</div>` : ''}
   `;
 }
 
 function updateSet(eIdx, sIdx, key, val) {
-  state.active.exercises[eIdx].sets[sIdx][key] = val;
+  const st = state.active.exercises[eIdx].sets[sIdx];
+  st[key] = val;
+  if (!st.at && val !== '' && val != null) st.at = Date.now(); // time the set was logged
   saveState();
 }
 function updateExNote(eIdx, val) {
@@ -2110,7 +2113,8 @@ function addSet(eIdx) {
     weight: last.weight || "",
     kg: last.kg || "",
     reps: "",
-    variation: last.variation || "regular"
+    variation: last.variation || "regular",
+    at: Date.now()
   });
   saveState();
   renderExerciseList();
@@ -2310,7 +2314,7 @@ function renderHistory() {
     return `
       <div class="history-item" onclick="openHistoryDetail('${w.id}')">
         <div class="h-date">${formatDate(w.date)}</div>
-        <div class="h-meta">${escapeHtml(w.name)} · ${w.exercises.length} EX · ${setCount} SETS</div>
+        <div class="h-meta">${escapeHtml(w.name)} · ${w.exercises.length} EX · ${setCount} SETS${sessionSpan(w) ? ' · ' + sessionSpan(w) : ''}</div>
       </div>
     `;
   }).join('');
@@ -2321,12 +2325,14 @@ function openHistoryDetail(id) {
   if (!w) return;
   activeHistoryId = id;
   document.getElementById('hmTitle').textContent = w.name.toUpperCase();
-  let html = `<div style="color:var(--dim);font-size:11px;letter-spacing:.15em;margin-bottom:14px;">${formatDate(w.date)}</div>`;
+  let html = `<div style="color:var(--dim);font-size:11px;letter-spacing:.15em;margin-bottom:14px;">${formatDate(w.date)}${sessionSpan(w) ? ' · ' + sessionSpan(w) : ''}</div>`;
   for (const ex of w.exercises) {
+    const span = exerciseSpan(ex);
     html += `<div style="margin-bottom:12px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.1em;margin-bottom:4px;">${escapeHtml(ex.name)}</div>`;
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.1em;margin-bottom:4px;">${escapeHtml(ex.name)}${span ? ` <span style="color:var(--dim);font-size:12px;letter-spacing:.05em;">· ${span}</span>` : ''}</div>`;
     for (const s of ex.sets) {
-      html += `<div style="font-size:12px;color:var(--dim);margin-left:10px;">○ ${formatSetText(ex.name, s)}</div>`;
+      const tt = setTimeText(s);
+      html += `<div style="font-size:12px;color:var(--dim);margin-left:10px;">○ ${formatSetText(ex.name, s)}${tt ? ` <span style="opacity:.75">· ${tt}</span>` : ''}</div>`;
     }
     if (ex.note) html += `<div style="font-size:11px;color:var(--dim);margin-left:10px;font-style:italic;">${escapeHtml(ex.note)}</div>`;
     html += `</div>`;
@@ -2335,6 +2341,14 @@ function openHistoryDetail(id) {
   openModal('historyModal');
 }
 function closeHistoryModal() { closeModalById('historyModal'); }
+
+// ---- set times & durations ----
+function fmtClock(ts) { if (!ts) return ''; const d = new Date(ts); return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0'); }
+function fmtDur(sec) { if (sec == null || isNaN(sec)) return ''; sec = Math.round(sec); const m = Math.floor(sec / 60), r = sec % 60; return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : m > 0 ? `${m}:${String(r).padStart(2, '0')}` : `${r}s`; }
+function setTimeText(s) { const t = fmtClock(s.at), d = s.dur != null ? fmtDur(s.dur) : ''; return [t, d].filter(Boolean).join(' · '); }
+// exercise span: first set → last set (only meaningful with 2+ timed sets); force sets carry their own duration
+function exerciseSpan(ex) { const ts = ex.sets.map(x => x.at).filter(Boolean); if (ts.length < 2) return ''; const a = Math.min(...ts), b = Math.max(...ts); const lastDur = (ex.sets.find(x => x.at === b) || {}).dur || 0; return fmtDur((b - a) / 1000 + lastDur); }
+function sessionSpan(w) { const all = []; for (const ex of w.exercises) for (const x of ex.sets) if (x.at) all.push(x); if (!all.length) return ''; const a = Math.min(...all.map(x => x.at)), bSet = all.reduce((m, x) => x.at > m.at ? x : m, all[0]); const b = bSet.at + (bSet.dur || 0) * 1000; return `${fmtClock(a)} – ${fmtClock(b)} · ${fmtDur((b - a) / 1000)}`; }
 
 function formatSetText(exName, s) {
   const def = findExercise(exName);
@@ -3116,7 +3130,7 @@ window.GymLog = {
     else { const dn = (sess.name || "").trim(); if (dn && dn !== "Force Lab" && !dn.split(" + ").map(x => x.trim()).includes("Force Lab")) sess.name = dn + " + Force Lab"; else if (!dn) sess.name = "Force Lab"; }
     let ex = sess.exercises.find(x => x.name === fs.exercise);
     if (!ex) { ex = { id: "fl-" + uid(), name: fs.exercise, sets: [], note: "" }; sess.exercises.push(ex); }
-    ex.sets.push({ id: fs.id, weight: "", kg: fs.kg, reps: fs.reps, variation: fs.variation || "iso", note: fs.note || "" });
+    ex.sets.push({ id: fs.id, weight: "", kg: fs.kg, reps: fs.reps, variation: fs.variation || "iso", note: fs.note || "", at: fs.at || Date.now(), dur: fs.dur });
     state.history = state.history.filter(h => h.exercises.length || h.source !== "force-lab");
     sortHistory(); saveState();
     if (currentView === 'history') renderHistory();

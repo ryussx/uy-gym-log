@@ -1340,6 +1340,8 @@ function Nt(s) {
     kg: s.peak,
     reps: he(s),
     variation: Ps(s.exercise),
+    at: s.startedAt,
+    dur: s.durationS,
     note: [s.side !== "both" ? s.side : "", s.mode, s.note].filter(Boolean).join(" · ")
   };
 }

@@ -11,7 +11,7 @@ export interface GymLogHost {
   upsertForceSet(s: HostSet): void;
   removeForceSet(id: string): void;
 }
-export interface HostSet { id: string; date: string; exercise: string; kg: number; reps: number; variation: string; note: string }
+export interface HostSet { id: string; date: string; exercise: string; kg: number; reps: number; variation: string; note: string; at: number; dur: number }
 
 export function host(): GymLogHost | null { return (window as any).GymLog ?? null; }
 
@@ -19,6 +19,7 @@ export function toHostSet(s: SetRecord): HostSet {
   return {
     id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: s.exercise, kg: s.peak, reps: repsFor(s),
     variation: variationFor(s.exercise),
+    at: s.startedAt, dur: s.durationS,
     note: [s.side !== "both" ? s.side : "", s.mode, s.note].filter(Boolean).join(" · "),
   };
 }
