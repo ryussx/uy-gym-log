@@ -1,10 +1,28 @@
 // Set recording and ARX-style metrics.
 import type { ForceSample } from "./scale";
 
+export type Contraction = "complete" | "concentric" | "eccentric";
+export const SIDE_LABEL: Record<string, string> = { both: "", left: "Left", right: "Right" };
+export const CONTRACTION_LABEL: Record<string, string> = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
+/** Display name with how it was performed, e.g. "SR Chest Press — Right, Eccentric". */
+export function displayName(exercise: string, side: string, contraction?: string) {
+  const parts = [SIDE_LABEL[side] ?? "", CONTRACTION_LABEL[contraction ?? "complete"] ?? ""].filter(Boolean);
+  return parts.length ? `${exercise} — ${parts.join(", ")}` : exercise;
+}
+/** Key for maxes / comparisons. Complete contraction keeps the legacy "exercise|side" key. */
+export function variantKey(exercise: string, side: string, contraction?: string) {
+  const c = contraction ?? "complete";
+  return c === "complete" ? `${exercise}|${side}` : `${exercise}|${side}|${c}`;
+}
+export function sameVariant(s: SetRecord, exercise: string, side: string, contraction?: string) {
+  return s.exercise === exercise && s.side === side && (s.contraction ?? "complete") === (contraction ?? "complete");
+}
+
 export interface SetRecord {
   id: string;
   exercise: string;
   side: "both" | "left" | "right";
+  contraction?: Contraction; // undefined = complete
   mode: string; // free | hold | ramp | reps | maxtest | critical
   startedAt: number;
   durationS: number;
@@ -61,7 +79,7 @@ export class SetRecorder {
     return this.samples;
   }
 
-  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string }): SetRecord | null {
+  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string; contraction?: Contraction }): SetRecord | null {
     this.recording = false;
     const s = this.samples;
     if (s.length < 3) return null;
@@ -70,6 +88,7 @@ export class SetRecorder {
       id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       exercise: meta.exercise,
       side: meta.side,
+      contraction: meta.contraction ?? "complete",
       mode: meta.mode,
       startedAt: this.t0,
       durationS: s[s.length - 1].t,

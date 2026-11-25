@@ -67,9 +67,9 @@ export const store = {
     await set(KEY_SETS, all.filter((s) => s.id !== id));
   },
   async maxes(): Promise<MaxMap> { return get<MaxMap>(KEY_MAX, {}); },
-  async setMax(exercise: string, side: string, kg: number) {
+  async setMax(key: string, kg: number) {
     const m = await this.maxes();
-    m[`${exercise}|${side}`] = { kg, at: Date.now() };
+    m[key] = { kg, at: Date.now() };
     await set(KEY_MAX, m);
   },
   async deleteMax(key: string) {
@@ -84,7 +84,7 @@ export const store = {
     for (const r of all) if (r.exercise === oldName) r.exercise = newName;
     await set(KEY_SETS, all);
     const m = await this.maxes(); const out: MaxMap = {};
-    for (const [k, v] of Object.entries(m)) { const [ex, side] = k.split("|"); const nk = `${ex === oldName ? newName : ex}|${side}`; if (!out[nk] || out[nk].kg < v.kg) out[nk] = v; }
+    for (const [k, v] of Object.entries(m)) { const [ex, ...rest] = k.split("|"); const nk = [ex === oldName ? newName : ex, ...rest].join("|"); if (!out[nk] || out[nk].kg < v.kg) out[nk] = v; }
     await set(KEY_MAX, out);
     const list = await this.exercises();
     if (list.includes(oldName)) { const nl = list.map((e) => (e === oldName ? newName : e)); await set(KEY_EX, [...new Set(nl)]); }

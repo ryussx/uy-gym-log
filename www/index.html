@@ -859,6 +859,13 @@
             <option value="right">Right</option>
           </select>
         </label>
+        <label>Contraction
+          <select id="contraction">
+            <option value="complete">Complete</option>
+            <option value="concentric">Concentric only</option>
+            <option value="eccentric">Eccentric only</option>
+          </select>
+        </label>
       </div>
       <div class="row">
         <label>Protocol
@@ -1762,10 +1769,13 @@ function renameExerciseEverywhere(oldName, newName) {
   else state.custom.push({ name: newName, track: def.track, category: def.category || 'Custom' });
   // templates
   for (const t of TEMPLATES) t.exercises = t.exercises.map(n => n === oldName ? newName : n);
+  // Force Lab variants ("Name — Right, Eccentric") follow the base name
+  const mapName = (n) => n === oldName ? newName : (n.startsWith(oldName + ' — ') ? newName + n.slice(oldName.length) : n);
+  for (const c of state.custom) c.name = mapName(c.name);
   // sessions (history + active): rename, and merge duplicates within a session
   const fix = (sess) => {
     if (!sess) return;
-    for (const ex of sess.exercises) if (ex.name === oldName) ex.name = newName;
+    for (const ex of sess.exercises) ex.name = mapName(ex.name);
     const merged = [];
     for (const ex of sess.exercises) {
       const dup = ex.name === newName ? merged.find(m => m.name === newName) : null;

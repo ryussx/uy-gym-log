@@ -1,7 +1,7 @@
 // Bridge to the host app (UY Gym Log). The host exposes window.GymLog; when it is
 // absent (standalone dev server) everything falls back to Force Lab's own storage.
 import { DEFAULT_EXERCISES, variationFor } from "./store";
-import { repsFor, performedAt, type SetRecord } from "./metrics";
+import { repsFor, performedAt, displayName, type SetRecord } from "./metrics";
 import { isoDate } from "./export";
 
 export interface GymLogHost {
@@ -18,10 +18,10 @@ export function host(): GymLogHost | null { return (window as any).GymLog ?? nul
 
 export function toHostSet(s: SetRecord): HostSet {
   return {
-    id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: s.exercise, kg: s.peak, reps: repsFor(s),
+    id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: displayName(s.exercise, s.side, s.contraction), kg: s.peak, reps: repsFor(s),
     variation: variationFor(s.exercise),
     at: s.startedAt, dur: s.durationS,
-    note: [s.side !== "both" ? s.side : "", s.mode, s.note].filter(Boolean).join(" · "),
+    note: [s.mode, s.note].filter(Boolean).join(" · "),
   };
 }
 

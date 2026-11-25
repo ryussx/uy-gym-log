@@ -1,6 +1,6 @@
 import "./style.css";
 import { BleScale, SimScale, type ForceSource, type ScaleStatus } from "./scale";
-import { SetRecorder, computeMetrics, criticalForce, detectReps, repsFor, performedAt, type SetRecord } from "./metrics";
+import { SetRecorder, computeMetrics, criticalForce, detectReps, repsFor, performedAt, type SetRecord , displayName, variantKey, sameVariant, type Contraction } from "./metrics";
 import { ForceChart } from "./chart";
 import { buildProtocol, expand, ProtocolRunner, type Phase } from "./protocols";
 import { sounds, Voice, spokenCount } from "./audio";
@@ -50,9 +50,9 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
 // ---------- header ----------
 function updateHeader() {
   const ex = $<HTMLSelectElement>("exercise").value || "Choose exercise";
-  const side = $<HTMLSelectElement>("side").value, mode = $<HTMLSelectElement>("protocol").value;
-  $("hdrExName").textContent = ex;
-  $("hdrExMeta").textContent = [side !== "both" ? side : "", mode].filter(Boolean).join(" · ");
+  const side = $<HTMLSelectElement>("side").value, mode = $<HTMLSelectElement>("protocol").value, con = $<HTMLSelectElement>("contraction").value;
+  $("hdrExName").textContent = $<HTMLSelectElement>("exercise").value ? displayName(ex, side, con) : ex;
+  $("hdrExMeta").textContent = mode;
 }
 
 // ---------- rename ----------
@@ -129,11 +129,12 @@ function readParams(): Record<string, number> {
 async function refreshExerciseContext() {
   const ex = $<HTMLSelectElement>("exercise").value;
   const side = $<HTMLSelectElement>("side").value;
-  const mine = sets.filter((s) => s.exercise === ex && s.side === side);
+  const con = $<HTMLSelectElement>("contraction").value;
+  const mine = sets.filter((s) => sameVariant(s, ex, side, con));
   lastSetForExercise = mine.length ? mine[mine.length - 1] : null;
   bestOutputForExercise = mine.reduce((m, s) => Math.max(m, s.output), 0);
   const maxes = await store.maxes(); maxesCache = maxes;
-  currentMax = maxes[`${ex}|${side}`]?.kg ?? 0;
+  currentMax = maxes[variantKey(ex, side, con)]?.kg ?? 0;
   $("zoneMax").textContent = currentMax ? `(max ${currentMax} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)";
   $("sGoal").textContent = bestOutputForExercise ? fmt(bestOutputForExercise) : "–";
   chart.opts.ghost = ghostOn ? (lastSetForExercise?.samples ?? null) : null;
@@ -281,7 +282,8 @@ async function stopSet() {
   const ex = $<HTMLSelectElement>("exercise").value;
   const side = $<HTMLSelectElement>("side").value as SetRecord["side"];
   const mode = $<HTMLSelectElement>("protocol").value;
-  const rec = recorder.finish({ exercise: ex, side, mode });
+  const contraction = $<HTMLSelectElement>("contraction").value as Contraction;
+  const rec = recorder.finish({ exercise: ex, side, mode, contraction });
   // default the logged reps to the auto-detected count; the user can change it before/after saving
   if (rec && rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
   $("btnStop").classList.add("hidden");
@@ -292,7 +294,7 @@ async function stopSet() {
   if (!rec) return;
   // Max test: record the best 5-second effort as the new max
   if (mode === "maxtest" && rec.peak > 0) {
-    await store.setMax(ex, side, rec.peak);
+    await store.setMax(variantKey(ex, side, contraction), rec.peak);
     voice.say(`New max ${rec.peak.toFixed(0)} kilos`, true);
   }
   await store.saveSet(rec);
@@ -331,7 +333,7 @@ function startCallouts() {
 function stopCallouts() { if (secTimer) clearInterval(secTimer); secTimer = null; }
 
 function lockInputs(lock: boolean) {
-  for (const id of ["exercise", "side", "protocol"]) ($(id) as HTMLSelectElement).disabled = lock;
+  for (const id of ["exercise", "side", "protocol", "contraction"]) ($(id) as HTMLSelectElement).disabled = lock;
 }
 
 function setBanner(cue: string, name: string, time: string) {
@@ -364,14 +366,14 @@ async function showSummary(rec: SetRecord) {
   }
   let lr = "";
   if (other) {
-    const a = maxes[`${rec.exercise}|${rec.side}`]?.kg, b = maxes[`${rec.exercise}|${other}`]?.kg;
+    const a = maxes[variantKey(rec.exercise, rec.side, rec.contraction)]?.kg, b = maxes[variantKey(rec.exercise, other, rec.contraction)]?.kg;
     if (a && b) {
       const gap = ((Math.abs(a - b) / Math.max(a, b)) * 100).toFixed(0);
       lr = line("Left/right gap", `${gap}% (L ${fmt(rec.side === "left" ? a : b)} / R ${fmt(rec.side === "left" ? b : a)})`, Number(gap) > 10 ? `<span class="badge warn">asymmetry</span>` : `<span class="badge good">balanced</span>`);
     }
   }
   const box = $("summary");
-  box.innerHTML = `<h4>${esc(rec.exercise)} · ${rec.side} · ${rec.mode}</h4>${lines.join("")}${lr}${reps}
+  box.innerHTML = `<h4>${esc(displayName(rec.exercise, rec.side, rec.contraction))} · ${rec.mode}</h4>${lines.join("")}${lr}${reps}
     ${setEditorHtml(rec, "sum")}`;
   box.classList.remove("hidden");
   bindSetEditor(rec, "sum", async () => { await refreshExerciseContext(); renderHistory(); });
@@ -448,7 +450,7 @@ function renderHistory() {
   const list = sets.filter((s) => !f || s.exercise === f).slice().sort((a, b) => performedAt(b) - performedAt(a) || b.startedAt - a.startedAt);
   $("histBody").innerHTML = list.map((s) => `<tr data-id="${s.id}" class="${selectedHist?.id === s.id ? "sel" : ""}">
       <td>${new Date(performedAt(s)).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</td>
-      <td>${esc(s.exercise)}${s.side !== "both" ? ` <small class="muted">${s.side[0].toUpperCase()}</small>` : ""}</td>
+      <td>${esc(displayName(s.exercise, s.side, s.contraction))}</td>
       <td>${s.mode}</td><td>${repsFor(s)}</td><td>${fmtT(s.durationS)}</td><td>${fmt(s.peak)}</td><td>${fmt(s.avg)}</td><td>${fmt(s.output)}</td><td>${s.inroad.toFixed(0)}%</td>
       <td><button data-del="${s.id}">✕</button></td></tr>`).join("") || `<tr><td colspan="10" class="muted">No sets yet.</td></tr>`;
   $("histBody").querySelectorAll<HTMLTableRowElement>("tr[data-id]").forEach((tr) => {
@@ -476,7 +478,7 @@ function showHistDetail() {
   const box = $("histDetail");
   if (!s) { box.classList.add("hidden"); return; }
   box.classList.remove("hidden");
-  box.innerHTML = `<h4>${esc(s.exercise)} · ${new Date(s.startedAt).toLocaleString()}</h4>
+  box.innerHTML = `<h4>${esc(displayName(s.exercise, s.side, s.contraction))} · ${new Date(s.startedAt).toLocaleString()}</h4>
     <div class="chartwrap small"><canvas id="histCanvas"></canvas></div>
     ${line("Peak", `${fmt(s.peak)} kg`)}${line("Intensity", `${fmt(s.avg)} kg`)}${line("Output", fmt(s.output))}${line("Inroad", `${s.inroad.toFixed(0)}%`)}
     ${line("Reps (logged)", String(repsFor(s)))}
@@ -525,8 +527,8 @@ function drawProgress(list: SetRecord[]) {
 async function renderSettings() {
   const maxes = await store.maxes();
   const rows = Object.entries(maxes).map(([k, v]) => {
-    const [ex, side] = k.split("|");
-    return `<tr><td>${esc(ex)}</td><td>${side}</td><td>${fmt(v.kg)}</td><td>${new Date(v.at).toLocaleDateString()}</td><td><button data-mdel="${esc(k)}">✕</button></td></tr>`;
+    const [ex, side, con] = k.split("|");
+    return `<tr><td>${esc(displayName(ex, "both", con))}</td><td>${side}</td><td>${fmt(v.kg)}</td><td>${new Date(v.at).toLocaleDateString()}</td><td><button data-mdel="${esc(k)}">✕</button></td></tr>`;
   });
   $("maxBody").innerHTML = rows.join("") || `<tr><td colspan="5" class="muted">No maxes yet.</td></tr>`;
   $("maxBody").querySelectorAll<HTMLButtonElement>("button[data-mdel]").forEach((b) => (b.onclick = async () => {
@@ -556,7 +558,7 @@ function bindUI() {
   document.querySelectorAll<HTMLButtonElement>(".fl-tabs button").forEach((b) => (b.onclick = () => switchTab(b.dataset.tab!)));
   // header shows the current exercise; tap to change
   $("hdrExercise").onclick = () => { if (!recorder.recording) openPickerFor($<HTMLSelectElement>("exercise")); };
-  for (const id of ["exercise", "side", "protocol"]) $(id).addEventListener("change", updateHeader);
+  for (const id of ["exercise", "side", "protocol", "contraction"]) $(id).addEventListener("change", updateHeader);
   updateHeader();
   $("btnConnect").onclick = async () => {
     if (source instanceof BleScale && (curStatus === "live" || curStatus === "scanning")) {
@@ -631,6 +633,7 @@ function bindUI() {
   $("btnNewExSave").onclick = saveNewEx;
   $<HTMLInputElement>("newExName").onkeydown = (e) => { if (e.key === "Enter") saveNewEx(); };
   $("side").onchange = refreshExerciseContext;
+  $("contraction").onchange = refreshExerciseContext;
   $("protocol").onchange = () => renderParams();
   $("params").oninput = () => ($("protocolHelp").textContent = buildProtocol($<HTMLSelectElement>("protocol").value, readParams()).describe);
   for (const id of ["zoneOn", "zoneLo", "zoneHi"]) $(id).oninput = refreshExerciseContext;
@@ -684,7 +687,7 @@ function bindUI() {
   $("btnSetMax").onclick = async () => {
     const kg = Number($<HTMLInputElement>("maxKg").value);
     if (!kg) return;
-    await store.setMax($<HTMLSelectElement>("maxExercise").value, $<HTMLSelectElement>("maxSide").value, kg);
+    await store.setMax(variantKey($<HTMLSelectElement>("maxExercise").value, $<HTMLSelectElement>("maxSide").value), kg);
     $<HTMLInputElement>("maxKg").value = ""; renderSettings(); refreshExerciseContext();
   };
   $("btnAddEx").onclick = async () => {
