@@ -878,6 +878,7 @@
             <option value="__custom">Other…</option>
           </select>
         </label>
+        <label style="max-width:90px">Links <input type="number" id="links" min="0" max="20" step="1" value="0" title="Carabiners / hooks / shackles between anchor and handle" /></label>
       </div>
       <div class="row">
         <label>Protocol
@@ -935,6 +936,9 @@
         <div class="muted" id="simHelp">Slide up to "push", back to 0 to rest. Fatigue is simulated.</div>
       </div>
 
+      <div class="row" style="align-items:center;margin-bottom:6px">
+        <label class="inline">Countdown before set <input type="number" id="preCount" min="0" max="60" step="1" value="10" style="width:64px" /> s</label>
+      </div>
       <div class="actions">
         <button id="btnStart" class="primary big" disabled>Start set</button>
         <button id="btnStop" class="danger big hidden">Stop</button>

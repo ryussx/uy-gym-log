@@ -5,19 +5,20 @@ export type Contraction = "complete" | "concentric" | "eccentric";
 export const SIDE_LABEL: Record<string, string> = { both: "", left: "Left", right: "Right" };
 export const CONTRACTION_LABEL: Record<string, string> = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
 /** Display name with how it was performed, e.g. "SR Chest Press — Right, Eccentric". */
-export function displayName(exercise: string, side: string, contraction?: string, handle?: string) {
-  const parts = [handle?.trim() ?? "", SIDE_LABEL[side] ?? "", CONTRACTION_LABEL[contraction ?? "complete"] ?? ""].filter(Boolean);
+export function displayName(exercise: string, side: string, contraction?: string, handle?: string, links?: number) {
+  const parts = [handle?.trim() ?? "", SIDE_LABEL[side] ?? "", CONTRACTION_LABEL[contraction ?? "complete"] ?? "", links ? `${links} link${links === 1 ? "" : "s"}` : ""].filter(Boolean);
   return parts.length ? `${exercise} — ${parts.join(", ")}` : exercise;
 }
 /** Key for maxes / comparisons. Complete contraction keeps the legacy "exercise|side" key. */
-export function variantKey(exercise: string, side: string, contraction?: string, handle?: string) {
-  const c = contraction ?? "complete", h = handle?.trim() ?? "";
-  let k = c === "complete" && !h ? `${exercise}|${side}` : `${exercise}|${side}|${c}`;
-  if (h) k += `|${h}`;
+export function variantKey(exercise: string, side: string, contraction?: string, handle?: string, links?: number) {
+  const c = contraction ?? "complete", h = handle?.trim() ?? "", l = links ?? 0;
+  let k = c === "complete" && !h && !l ? `${exercise}|${side}` : `${exercise}|${side}|${c}`;
+  if (h || l) k += `|${h}`;
+  if (l) k += `|${l}L`;
   return k;
 }
-export function sameVariant(s: SetRecord, exercise: string, side: string, contraction?: string, handle?: string) {
-  return s.exercise === exercise && s.side === side && (s.contraction ?? "complete") === (contraction ?? "complete") && (s.handle ?? "") === (handle?.trim() ?? "");
+export function sameVariant(s: SetRecord, exercise: string, side: string, contraction?: string, handle?: string, links?: number) {
+  return s.exercise === exercise && s.side === side && (s.contraction ?? "complete") === (contraction ?? "complete") && (s.handle ?? "") === (handle?.trim() ?? "") && (s.links ?? 0) === (links ?? 0);
 }
 
 export interface SetRecord {
@@ -26,6 +27,7 @@ export interface SetRecord {
   side: "both" | "left" | "right";
   contraction?: Contraction; // undefined = complete
   handle?: string; // bar, rings, straps… (empty = unspecified)
+  links?: number; // connectors (carabiners, hooks, shackles) in the rig; 0 = unspecified
   mode: string; // free | hold | ramp | reps | maxtest | critical
   startedAt: number;
   durationS: number;
@@ -82,7 +84,7 @@ export class SetRecorder {
     return this.samples;
   }
 
-  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string; contraction?: Contraction; handle?: string }): SetRecord | null {
+  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string; contraction?: Contraction; handle?: string; links?: number }): SetRecord | null {
     this.recording = false;
     const s = this.samples;
     if (s.length < 3) return null;
@@ -93,6 +95,7 @@ export class SetRecorder {
       side: meta.side,
       contraction: meta.contraction ?? "complete",
       handle: meta.handle?.trim() || undefined,
+      links: meta.links || undefined,
       mode: meta.mode,
       startedAt: this.t0,
       durationS: s[s.length - 1].t,

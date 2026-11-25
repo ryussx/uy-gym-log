@@ -49,10 +49,11 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
 
 // ---------- header ----------
 function handleValue() { const v = $<HTMLSelectElement>("handle").value; return v === "__custom" ? "" : v; }
+function linksValue() { return Math.max(0, Math.floor(Number($<HTMLInputElement>("links").value) || 0)); }
 function updateHeader() {
   const ex = $<HTMLSelectElement>("exercise").value || "Choose exercise";
   const side = $<HTMLSelectElement>("side").value, mode = $<HTMLSelectElement>("protocol").value, con = $<HTMLSelectElement>("contraction").value;
-  $("hdrExName").textContent = $<HTMLSelectElement>("exercise").value ? displayName(ex, side, con, handleValue()) : ex;
+  $("hdrExName").textContent = $<HTMLSelectElement>("exercise").value ? displayName(ex, side, con, handleValue(), linksValue()) : ex;
   $("hdrExMeta").textContent = mode;
 }
 
@@ -130,12 +131,18 @@ function readParams(): Record<string, number> {
 async function refreshExerciseContext() {
   const ex = $<HTMLSelectElement>("exercise").value;
   const side = $<HTMLSelectElement>("side").value;
-  const con = $<HTMLSelectElement>("contraction").value, hd = handleValue();
-  const mine = sets.filter((s) => sameVariant(s, ex, side, con, hd));
+  const con = $<HTMLSelectElement>("contraction").value, hd = handleValue(), lk = linksValue();
+  const mine = sets.filter((s) => sameVariant(s, ex, side, con, hd, lk));
   lastSetForExercise = mine.length ? mine[mine.length - 1] : null;
   bestOutputForExercise = mine.reduce((m, s) => Math.max(m, s.output), 0);
   const maxes = await store.maxes(); maxesCache = maxes;
-  currentMax = maxes[variantKey(ex, side, con, hd)]?.kg ?? 0;
+  currentMax = maxes[variantKey(ex, side, con, hd, lk)]?.kg ?? 0;
+  // previous peak for this exact variant, visible before the set starts
+  if (!recorder.recording) {
+    const bestPeak = mine.reduce((m, s) => Math.max(m, s.peak), 0);
+    $("sPeak").textContent = lastSetForExercise ? fmt(lastSetForExercise.peak) : "–";
+    $("dPeak").innerHTML = lastSetForExercise ? `<span class="muted">last · best ${fmt(bestPeak)} kg</span>` : `<span class="muted">no previous set</span>`;
+  }
   $("zoneMax").textContent = currentMax ? `(max ${currentMax} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)";
   $("sGoal").textContent = bestOutputForExercise ? fmt(bestOutputForExercise) : "–";
   chart.opts.ghost = ghostOn ? (lastSetForExercise?.samples ?? null) : null;
@@ -235,7 +242,36 @@ function zoneFeedback(kg: number) {
 }
 
 // ---------- set control ----------
+let lastFinished: SetRecord | null = null;
+let preTimer: ReturnType<typeof setInterval> | null = null;
+/** Start set = optional spoken countdown, then the real set. */
 function startSet() {
+  const n = Math.max(0, Math.floor(Number($<HTMLInputElement>("preCount").value) || 0));
+  if (!n) { beginSet(); return; }
+  voice.unlock();
+  $("btnStart").classList.add("hidden"); $("btnStop").classList.remove("hidden"); $("btnStop").textContent = "Cancel";
+  lockInputs(true);
+  let left = n;
+  const tick = () => {
+    setBanner("rest", "Get ready", String(left));
+    if (left > 0) { voice.say(String(left), true); if (beepOn) sounds.tick(); }
+  };
+  tick();
+  preTimer = setInterval(() => {
+    left--;
+    if (left <= 0) { clearInterval(preTimer!); preTimer = null; $("btnStop").textContent = "Stop"; beginSet(); return; }
+    tick();
+  }, 1000);
+}
+function cancelCountdown() {
+  if (!preTimer) return false;
+  clearInterval(preTimer); preTimer = null;
+  $("btnStop").textContent = "Stop"; $("btnStop").classList.add("hidden"); $("btnStart").classList.remove("hidden");
+  lockInputs(false); setBanner("rest", "Ready", "");
+  return true;
+}
+function beginSet() {
+  lastFinished = null;
   const pid = $<HTMLSelectElement>("protocol").value;
   const proto = buildProtocol(pid, readParams());
   $("summary").classList.add("hidden");
@@ -278,15 +314,17 @@ function onTick(remaining: number, ph: Phase) {
 }
 
 async function stopSet() {
+  if (cancelCountdown()) return;
   runner.stop();
   stopCallouts();
   const ex = $<HTMLSelectElement>("exercise").value;
   const side = $<HTMLSelectElement>("side").value as SetRecord["side"];
   const mode = $<HTMLSelectElement>("protocol").value;
   const contraction = $<HTMLSelectElement>("contraction").value as Contraction;
-  const rec = recorder.finish({ exercise: ex, side, mode, contraction, handle: handleValue() });
+  const rec = recorder.finish({ exercise: ex, side, mode, contraction, handle: handleValue(), links: linksValue() });
   // default the logged reps to the auto-detected count; the user can change it before/after saving
   if (rec && rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
+  lastFinished = rec; // Train chart now shows the whole set
   $("btnStop").classList.add("hidden");
   $("btnStart").classList.remove("hidden");
   lockInputs(false);
@@ -295,7 +333,7 @@ async function stopSet() {
   if (!rec) return;
   // Max test: record the best 5-second effort as the new max
   if (mode === "maxtest" && rec.peak > 0) {
-    await store.setMax(variantKey(ex, side, contraction, handleValue()), rec.peak);
+    await store.setMax(variantKey(ex, side, contraction, handleValue(), linksValue()), rec.peak);
     voice.say(`New max ${rec.peak.toFixed(0)} kilos`, true);
   }
   await store.saveSet(rec);
@@ -334,7 +372,7 @@ function startCallouts() {
 function stopCallouts() { if (secTimer) clearInterval(secTimer); secTimer = null; }
 
 function lockInputs(lock: boolean) {
-  for (const id of ["exercise", "side", "protocol", "contraction", "handle"]) ($(id) as HTMLSelectElement).disabled = lock;
+  for (const id of ["exercise", "side", "protocol", "contraction", "handle", "links", "preCount"]) ($(id) as HTMLSelectElement).disabled = lock;
 }
 
 function setBanner(cue: string, name: string, time: string) {
@@ -367,14 +405,14 @@ async function showSummary(rec: SetRecord) {
   }
   let lr = "";
   if (other) {
-    const a = maxes[variantKey(rec.exercise, rec.side, rec.contraction, rec.handle)]?.kg, b = maxes[variantKey(rec.exercise, other, rec.contraction, rec.handle)]?.kg;
+    const a = maxes[variantKey(rec.exercise, rec.side, rec.contraction, rec.handle, rec.links)]?.kg, b = maxes[variantKey(rec.exercise, other, rec.contraction, rec.handle, rec.links)]?.kg;
     if (a && b) {
       const gap = ((Math.abs(a - b) / Math.max(a, b)) * 100).toFixed(0);
       lr = line("Left/right gap", `${gap}% (L ${fmt(rec.side === "left" ? a : b)} / R ${fmt(rec.side === "left" ? b : a)})`, Number(gap) > 10 ? `<span class="badge warn">asymmetry</span>` : `<span class="badge good">balanced</span>`);
     }
   }
   const box = $("summary");
-  box.innerHTML = `<h4>${esc(displayName(rec.exercise, rec.side, rec.contraction, rec.handle))} · ${rec.mode}</h4>${lines.join("")}${lr}${reps}
+  box.innerHTML = `<h4>${esc(displayName(rec.exercise, rec.side, rec.contraction, rec.handle, rec.links))} · ${rec.mode}</h4>${lines.join("")}${lr}${reps}
     ${setEditorHtml(rec, "sum")}`;
   box.classList.remove("hidden");
   bindSetEditor(rec, "sum", async () => { await refreshExerciseContext(); renderHistory(); });
@@ -422,7 +460,7 @@ function delta(now: number, prev?: number) {
 // ---------- draw loop ----------
 function drawLoop() {
   const samples = recorder.current();
-  const el = recorder.elapsed();
+  const el = recorder.recording ? recorder.elapsed() : (lastFinished?.durationS ?? recorder.elapsed());
   $("liveKg").textContent = liveKg.toFixed(1);
   $("elapsed").textContent = fmtT(el);
   chart.draw(samples, el, liveKg);
@@ -451,7 +489,7 @@ function renderHistory() {
   const list = sets.filter((s) => !f || s.exercise === f).slice().sort((a, b) => performedAt(b) - performedAt(a) || b.startedAt - a.startedAt);
   $("histBody").innerHTML = list.map((s) => `<tr data-id="${s.id}" class="${selectedHist?.id === s.id ? "sel" : ""}">
       <td>${new Date(performedAt(s)).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</td>
-      <td>${esc(displayName(s.exercise, s.side, s.contraction, s.handle))}</td>
+      <td>${esc(displayName(s.exercise, s.side, s.contraction, s.handle, s.links))}</td>
       <td>${s.mode}</td><td>${repsFor(s)}</td><td>${fmtT(s.durationS)}</td><td>${fmt(s.peak)}</td><td>${fmt(s.avg)}</td><td>${fmt(s.output)}</td><td>${s.inroad.toFixed(0)}%</td>
       <td><button data-del="${s.id}">✕</button></td></tr>`).join("") || `<tr><td colspan="10" class="muted">No sets yet.</td></tr>`;
   $("histBody").querySelectorAll<HTMLTableRowElement>("tr[data-id]").forEach((tr) => {
@@ -479,7 +517,7 @@ function showHistDetail() {
   const box = $("histDetail");
   if (!s) { box.classList.add("hidden"); return; }
   box.classList.remove("hidden");
-  box.innerHTML = `<h4>${esc(displayName(s.exercise, s.side, s.contraction, s.handle))} · ${new Date(s.startedAt).toLocaleString()}</h4>
+  box.innerHTML = `<h4>${esc(displayName(s.exercise, s.side, s.contraction, s.handle, s.links))} · ${new Date(s.startedAt).toLocaleString()}</h4>
     <div class="chartwrap small"><canvas id="histCanvas"></canvas></div>
     ${line("Peak", `${fmt(s.peak)} kg`)}${line("Intensity", `${fmt(s.avg)} kg`)}${line("Output", fmt(s.output))}${line("Inroad", `${s.inroad.toFixed(0)}%`)}
     ${line("Reps (logged)", String(repsFor(s)))}
@@ -528,8 +566,8 @@ function drawProgress(list: SetRecord[]) {
 async function renderSettings() {
   const maxes = await store.maxes();
   const rows = Object.entries(maxes).map(([k, v]) => {
-    const [ex, side, con, hd] = k.split("|");
-    return `<tr><td>${esc(displayName(ex, "both", con, hd))}</td><td>${side}</td><td>${fmt(v.kg)}</td><td>${new Date(v.at).toLocaleDateString()}</td><td><button data-mdel="${esc(k)}">✕</button></td></tr>`;
+    const [ex, side, con, hd, lk] = k.split("|");
+    return `<tr><td>${esc(displayName(ex, "both", con, hd, Number((lk ?? "").replace("L", "")) || 0))}</td><td>${side}</td><td>${fmt(v.kg)}</td><td>${new Date(v.at).toLocaleDateString()}</td><td><button data-mdel="${esc(k)}">✕</button></td></tr>`;
   });
   $("maxBody").innerHTML = rows.join("") || `<tr><td colspan="5" class="muted">No maxes yet.</td></tr>`;
   $("maxBody").querySelectorAll<HTMLButtonElement>("button[data-mdel]").forEach((b) => (b.onclick = async () => {
@@ -559,7 +597,7 @@ function bindUI() {
   document.querySelectorAll<HTMLButtonElement>(".fl-tabs button").forEach((b) => (b.onclick = () => switchTab(b.dataset.tab!)));
   // header shows the current exercise; tap to change
   $("hdrExercise").onclick = () => { if (!recorder.recording) openPickerFor($<HTMLSelectElement>("exercise")); };
-  for (const id of ["exercise", "side", "protocol", "contraction", "handle"]) $(id).addEventListener("change", updateHeader);
+  for (const id of ["exercise", "side", "protocol", "contraction", "handle", "links"]) $(id).addEventListener("change", updateHeader);
   updateHeader();
   $("btnConnect").onclick = async () => {
     if (source instanceof BleScale && (curStatus === "live" || curStatus === "scanning")) {
@@ -635,6 +673,14 @@ function bindUI() {
   $<HTMLInputElement>("newExName").onkeydown = (e) => { if (e.key === "Enter") saveNewEx(); };
   $("side").onchange = refreshExerciseContext;
   $("contraction").onchange = refreshExerciseContext;
+  // links are remembered per exercise
+  const linksFor = (ex: string) => Number(localStorage.getItem(`ufl.links.${ex}`) ?? "0") || 0;
+  const loadLinks = () => { $<HTMLInputElement>("links").value = String(linksFor($<HTMLSelectElement>("exercise").value)); };
+  $("exercise").addEventListener("change", () => { loadLinks(); updateHeader(); });
+  $("links").oninput = () => { localStorage.setItem(`ufl.links.${$<HTMLSelectElement>("exercise").value}`, String(linksValue())); updateHeader(); refreshExerciseContext(); };
+  setTimeout(loadLinks, 0);
+  $<HTMLInputElement>("preCount").value = localStorage.getItem("ufl.preCount") ?? "10";
+  $("preCount").onchange = () => localStorage.setItem("ufl.preCount", String(Math.max(0, Number($<HTMLInputElement>("preCount").value) || 0)));
   // handle: remembered; "Other…" asks for a name and adds it to the list
   const hsel = $<HTMLSelectElement>("handle");
   const savedHandle = localStorage.getItem("ufl.handle") ?? "";
