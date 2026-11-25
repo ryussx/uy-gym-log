@@ -1560,7 +1560,7 @@ function Ws(s, e) {
 async function Kt() {
   te.stop(), Gt();
   const s = c("exercise").value, e = c("side").value, t = c("protocol").value, n = j.finish({ exercise: s, side: e, mode: t });
-  c("btnStop").classList.add("hidden"), c("btnStart").classList.remove("hidden"), Yt(!1), ht("idle", "Done", "—"), Y && se.done(), n && (t === "maxtest" && n.peak > 0 && (await P.setMax(s, e, n.peak), k.say(`New max ${n.peak.toFixed(0)} kilos`, !0)), await P.saveSet(n), q.push(n), z()?.upsertForceSet(Ut(n)), await Ks(n), await R(), Z(), J());
+  n && n.manualReps === void 0 && (n.reps?.length ?? 0) >= 2 && (n.manualReps = n.reps.length), c("btnStop").classList.add("hidden"), c("btnStart").classList.remove("hidden"), Yt(!1), ht("idle", "Done", "—"), Y && se.done(), n && (t === "maxtest" && n.peak > 0 && (await P.setMax(s, e, n.peak), k.say(`New max ${n.peak.toFixed(0)} kilos`, !0)), await P.saveSet(n), q.push(n), z()?.upsertForceSet(Ut(n)), await Ks(n), await R(), Z(), J());
 }
 function zs() {
   Gt(), Ze = -1, Re = setInterval(() => {
@@ -1618,7 +1618,7 @@ function Xt(s, e) {
       <label>Date performed <input type="date" id="${e}Date" value="${t}" max="${Ee(Date.now())}" /></label>
       <label class="grow">Note <input type="text" id="${e}Note" placeholder="optional" value="${T(s.note ?? "")}" /></label>
       <button class="sm primary" id="${e}Save" type="button">Save</button>
-      <span class="muted" id="${e}Msg">${s.reps?.length ? `auto-detected ${s.reps.length} — for info only` : "blank reps = 1"}</span>
+      <span class="muted" id="${e}Msg">${s.reps?.length ? `auto-detected ${s.reps.length} — change it if that's wrong` : "blank reps = 1"}</span>
     </div>`;
 }
 function Jt(s, e, t) {

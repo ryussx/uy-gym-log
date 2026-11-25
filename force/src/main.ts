@@ -274,7 +274,7 @@ async function stopSet() {
   const mode = $<HTMLSelectElement>("protocol").value;
   const rec = recorder.finish({ exercise: ex, side, mode });
   // default the logged reps to the auto-detected count; the user can change it before/after saving
-  if (rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
+  if (rec && rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
   $("btnStop").classList.add("hidden");
   $("btnStart").classList.remove("hidden");
   lockInputs(false);
