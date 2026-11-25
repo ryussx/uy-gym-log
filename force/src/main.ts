@@ -273,6 +273,8 @@ async function stopSet() {
   const side = $<HTMLSelectElement>("side").value as SetRecord["side"];
   const mode = $<HTMLSelectElement>("protocol").value;
   const rec = recorder.finish({ exercise: ex, side, mode });
+  // default the logged reps to the auto-detected count; the user can change it before/after saving
+  if (rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
   $("btnStop").classList.add("hidden");
   $("btnStart").classList.remove("hidden");
   lockInputs(false);
@@ -374,7 +376,7 @@ function setEditorHtml(rec: SetRecord, k: string) {
       <label>Date performed <input type="date" id="${k}Date" value="${d}" max="${isoDate(Date.now())}" /></label>
       <label class="grow">Note <input type="text" id="${k}Note" placeholder="optional" value="${esc(rec.note ?? "")}" /></label>
       <button class="sm primary" id="${k}Save" type="button">Save</button>
-      <span class="muted" id="${k}Msg">${rec.reps?.length ? `auto-detected ${rec.reps.length} — for info only` : "blank reps = 1"}</span>
+      <span class="muted" id="${k}Msg">${rec.reps?.length ? `auto-detected ${rec.reps.length} — change it if that's wrong` : "blank reps = 1"}</span>
     </div>`;
 }
 function bindSetEditor(rec: SetRecord, k: string, after: () => Promise<void> | void) {
