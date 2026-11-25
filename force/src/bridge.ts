@@ -18,7 +18,7 @@ export function host(): GymLogHost | null { return (window as any).GymLog ?? nul
 
 export function toHostSet(s: SetRecord): HostSet {
   return {
-    id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: displayName(s.exercise, s.side, s.contraction), kg: s.peak, reps: repsFor(s),
+    id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: displayName(s.exercise, s.side, s.contraction, s.handle), kg: s.peak, reps: repsFor(s),
     variation: variationFor(s.exercise),
     at: s.startedAt, dur: s.durationS,
     note: [s.mode, s.note].filter(Boolean).join(" · "),
