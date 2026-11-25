@@ -7,11 +7,19 @@
 #view-force * { box-sizing: border-box; }
 #view-force { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 #flApp { max-width: 720px; margin: 0 auto; padding: env(safe-area-inset-top) 12px calc(24px + env(safe-area-inset-bottom)); }
-.fl-top { position: sticky; top: 0; z-index: 30; background: var(--bg); margin: 0 -18px; padding-left: 18px !important; padding-right: 18px !important; display: flex; justify-content: space-between; align-items: center; padding: calc(8px + env(safe-area-inset-top)) 0 6px; gap: 8px; flex-wrap: wrap; box-shadow: 0 6px 12px -8px rgba(0,0,0,0.8); }
-.fl-brand { font-weight: 800; letter-spacing: 0.5px; font-size: 18px; }
+.fl-top { position: sticky; top: 0; z-index: 30; background: var(--bg); margin: 0 -18px; padding-left: 18px !important; padding-right: 18px !important; display: flex; flex-direction: column; align-items: stretch; padding: calc(6px + env(safe-area-inset-top)) 0 4px; gap: 4px; box-shadow: 0 6px 12px -8px rgba(0,0,0,0.8); }
+.fl-brand { font-weight: 800; letter-spacing: 0.3px; font-size: 19px; }
+.hdr-ex { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; line-height: 1.2; }
+#hdrExName { color: var(--text) !important; }
+.hdr-ex small { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.hdr-ex::after { content: " ▾"; color: var(--muted); font-size: 12px; }
 .fl-brand span { color: var(--accent); }
-.conn { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #333; color: #ccc; }
+.conn { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); flex-wrap: nowrap; min-width: 0; }
+.conn .pill { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
+.conn .pill #statusKg { white-space: nowrap; }
+.conn .pill #statusText { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conn button.sm { padding: 5px 7px; font-size: 11px; flex: 0 0 auto; }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #333; color: #ccc; }
 .pill.scanning { background: rgba(255,170,0,0.18); color: var(--accent2); }
 .pill.live { background: rgba(0,200,100,0.18); color: var(--good); }
 .pill.lost, .pill.error { background: rgba(255,60,60,0.18); color: var(--bad); }

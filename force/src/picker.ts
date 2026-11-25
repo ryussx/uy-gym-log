@@ -12,6 +12,9 @@ export interface PickerOptions {
 }
 
 let overlay: HTMLElement | null = null;
+const registry = new Map<HTMLSelectElement, () => void>();
+/** Open the picker attached to a select from elsewhere (e.g. the header). */
+export function openPickerFor(select: HTMLSelectElement) { registry.get(select)?.(); }
 
 function esc(s: string) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)); }
 
@@ -29,6 +32,7 @@ export function attachPicker(select: HTMLSelectElement, opts: PickerOptions) {
   new MutationObserver(refresh).observe(select, { attributes: true, childList: true });
   select.addEventListener("change", refresh);
   btn.onclick = () => open(select, opts, refresh);
+  registry.set(select, () => open(select, opts, refresh));
   return refresh;
 }
 

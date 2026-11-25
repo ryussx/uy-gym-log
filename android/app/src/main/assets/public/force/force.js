@@ -2,14 +2,14 @@ var tt;
 (function(s) {
   s[s.SCAN_MODE_LOW_POWER = 0] = "SCAN_MODE_LOW_POWER", s[s.SCAN_MODE_BALANCED = 1] = "SCAN_MODE_BALANCED", s[s.SCAN_MODE_LOW_LATENCY = 2] = "SCAN_MODE_LOW_LATENCY";
 })(tt || (tt = {}));
-var ft;
-(function(s) {
-  s[s.PHY_LE_1M = 1] = "PHY_LE_1M", s[s.PHY_LE_2M = 2] = "PHY_LE_2M", s[s.PHY_LE_CODED = 3] = "PHY_LE_CODED", s[s.PHY_LE_ALL_SUPPORTED = 255] = "PHY_LE_ALL_SUPPORTED";
-})(ft || (ft = {}));
 var pt;
 (function(s) {
-  s[s.CONNECTION_PRIORITY_BALANCED = 0] = "CONNECTION_PRIORITY_BALANCED", s[s.CONNECTION_PRIORITY_HIGH = 1] = "CONNECTION_PRIORITY_HIGH", s[s.CONNECTION_PRIORITY_LOW_POWER = 2] = "CONNECTION_PRIORITY_LOW_POWER";
+  s[s.PHY_LE_1M = 1] = "PHY_LE_1M", s[s.PHY_LE_2M = 2] = "PHY_LE_2M", s[s.PHY_LE_CODED = 3] = "PHY_LE_CODED", s[s.PHY_LE_ALL_SUPPORTED = 255] = "PHY_LE_ALL_SUPPORTED";
 })(pt || (pt = {}));
+var gt;
+(function(s) {
+  s[s.CONNECTION_PRIORITY_BALANCED = 0] = "CONNECTION_PRIORITY_BALANCED", s[s.CONNECTION_PRIORITY_HIGH = 1] = "CONNECTION_PRIORITY_HIGH", s[s.CONNECTION_PRIORITY_LOW_POWER = 2] = "CONNECTION_PRIORITY_LOW_POWER";
+})(gt || (gt = {}));
 /*! Capacitor: https://capacitorjs.com/ - MIT License */
 var he;
 (function(s) {
@@ -20,11 +20,11 @@ class Ve extends Error {
     super(e), this.message = e, this.code = t, this.data = n;
   }
 }
-const ss = (s) => {
+const as = (s) => {
   var e, t;
   return s?.androidBridge ? "android" : !((t = (e = s?.webkit) === null || e === void 0 ? void 0 : e.messageHandlers) === null || t === void 0) && t.bridge ? "ios" : "web";
-}, ns = (s) => {
-  const e = s.CapacitorCustomPlatform || null, t = s.Capacitor || {}, n = t.Plugins = t.Plugins || {}, i = () => e !== null ? e.name : ss(s), a = () => i() !== "web", o = (h) => {
+}, rs = (s) => {
+  const e = s.CapacitorCustomPlatform || null, t = s.Capacitor || {}, n = t.Plugins = t.Plugins || {}, i = () => e !== null ? e.name : as(s), a = () => i() !== "web", c = (h) => {
     const f = u.get(h);
     return !!(f?.platforms.has(i()) || l(h));
   }, l = (h) => {
@@ -36,12 +36,12 @@ const ss = (s) => {
       return console.warn(`Capacitor plugin "${h}" already registered. Cannot register plugins twice.`), p.proxy;
     const v = i(), y = l(h);
     let b;
-    const x = async () => (!b && v in f ? b = typeof f[v] == "function" ? b = await f[v]() : b = f[v] : e !== null && !b && "web" in f && (b = typeof f.web == "function" ? b = await f.web() : b = f.web), b), V = (L, $) => {
+    const x = async () => (!b && v in f ? b = typeof f[v] == "function" ? b = await f[v]() : b = f[v] : e !== null && !b && "web" in f && (b = typeof f.web == "function" ? b = await f.web() : b = f.web), b), j = (L, $) => {
       var g, S;
       if (y) {
-        const _ = y?.methods.find((H) => $ === H.name);
+        const _ = y?.methods.find((V) => $ === V.name);
         if (_)
-          return _.rtype === "promise" ? (H) => t.nativePromise(h, $.toString(), H) : (H, Le) => t.nativeCallback(h, $.toString(), H, Le);
+          return _.rtype === "promise" ? (V) => t.nativePromise(h, $.toString(), V) : (V, Le) => t.nativeCallback(h, $.toString(), V, Le);
         if (L)
           return (g = L[$]) === null || g === void 0 ? void 0 : g.bind(L);
       } else {
@@ -52,8 +52,8 @@ const ss = (s) => {
     }, M = (L) => {
       let $;
       const g = (...S) => {
-        const _ = x().then((H) => {
-          const Le = V(H, L);
+        const _ = x().then((V) => {
+          const Le = j(V, L);
           if (Le) {
             const Ce = Le(...S);
             return $ = Ce?.remove, Ce;
@@ -69,12 +69,12 @@ const ss = (s) => {
       }), g;
     }, U = M("addListener"), I = M("removeListener"), F = (L, $) => {
       const g = U({ eventName: L }, $), S = async () => {
-        const H = await g;
+        const V = await g;
         I({
           eventName: L,
-          callbackId: H
+          callbackId: V
         }, $);
-      }, _ = new Promise((H) => g.then(() => H({ remove: S })));
+      }, _ = new Promise((V) => g.then(() => V({ remove: S })));
       return _.remove = async () => {
         console.warn("Using addListener() without 'await' is deprecated."), await S();
       }, _;
@@ -100,8 +100,8 @@ const ss = (s) => {
       platforms: /* @__PURE__ */ new Set([...Object.keys(f), ...y ? [v] : []])
     }), D;
   };
-  return t.convertFileSrc || (t.convertFileSrc = (h) => h), t.getPlatform = i, t.handleError = r, t.isNativePlatform = a, t.isPluginAvailable = o, t.registerPlugin = d, t.Exception = Ve, t.DEBUG = !!t.DEBUG, t.isLoggingEnabled = !!t.isLoggingEnabled, t;
-}, is = (s) => s.Capacitor = ns(s), A = /* @__PURE__ */ is(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : typeof window < "u" ? window : typeof global < "u" ? global : {}), ne = A.registerPlugin;
+  return t.convertFileSrc || (t.convertFileSrc = (h) => h), t.getPlatform = i, t.handleError = r, t.isNativePlatform = a, t.isPluginAvailable = c, t.registerPlugin = d, t.Exception = Ve, t.DEBUG = !!t.DEBUG, t.isLoggingEnabled = !!t.isLoggingEnabled, t;
+}, os = (s) => s.Capacitor = rs(s), A = /* @__PURE__ */ os(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : typeof window < "u" ? window : typeof global < "u" ? global : {}), ne = A.registerPlugin;
 class ie {
   constructor() {
     this.listeners = {}, this.retainedEventArguments = {}, this.windowListeners = {};
@@ -111,8 +111,8 @@ class ie {
     this.listeners[e] || (this.listeners[e] = [], n = !0), this.listeners[e].push(t);
     const a = this.windowListeners[e];
     a && !a.registered && this.addWindowListener(a), n && this.sendRetainedArgumentsForEvent(e);
-    const o = async () => this.removeListener(e, t);
-    return Promise.resolve({ remove: o });
+    const c = async () => this.removeListener(e, t);
+    return Promise.resolve({ remove: c });
   }
   async removeAllListeners() {
     this.listeners = {};
@@ -171,21 +171,21 @@ class ie {
     }));
   }
 }
-const gt = (s) => encodeURIComponent(s).replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent).replace(/[()]/g, escape), mt = (s) => s.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent);
-class as extends ie {
+const mt = (s) => encodeURIComponent(s).replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent).replace(/[()]/g, escape), vt = (s) => s.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent);
+class cs extends ie {
   async getCookies() {
     const e = document.cookie, t = {};
     return e.split(";").forEach((n) => {
       if (n.length <= 0)
         return;
       let [i, a] = n.replace(/=/, "CAP_COOKIE").split("CAP_COOKIE");
-      i = mt(i).trim(), a = mt(a).trim(), t[i] = a;
+      i = vt(i).trim(), a = vt(a).trim(), t[i] = a;
     }), t;
   }
   async setCookie(e) {
     try {
-      const t = gt(e.key), n = gt(e.value), i = e.expires ? `; expires=${e.expires.replace("expires=", "")}` : "", a = (e.path || "/").replace("path=", ""), o = e.url != null && e.url.length > 0 ? `domain=${e.url}` : "";
-      document.cookie = `${t}=${n || ""}${i}; path=${a}; ${o};`;
+      const t = mt(e.key), n = mt(e.value), i = e.expires ? `; expires=${e.expires.replace("expires=", "")}` : "", a = (e.path || "/").replace("path=", ""), c = e.url != null && e.url.length > 0 ? `domain=${e.url}` : "";
+      document.cookie = `${t}=${n || ""}${i}; path=${a}; ${c};`;
     } catch (t) {
       return Promise.reject(t);
     }
@@ -215,31 +215,31 @@ class as extends ie {
   }
 }
 ne("CapacitorCookies", {
-  web: () => new as()
+  web: () => new cs()
 });
-const rs = async (s) => new Promise((e, t) => {
+const ls = async (s) => new Promise((e, t) => {
   const n = new FileReader();
   n.onload = () => {
     const i = n.result;
     e(i.indexOf(",") >= 0 ? i.split(",")[1] : i);
   }, n.onerror = (i) => t(i), n.readAsDataURL(s);
-}), os = (s = {}) => {
+}), us = (s = {}) => {
   const e = Object.keys(s);
-  return Object.keys(s).map((i) => i.toLocaleLowerCase()).reduce((i, a, o) => (i[a] = s[e[o]], i), {});
-}, cs = (s, e = !0) => s ? Object.entries(s).reduce((n, i) => {
-  const [a, o] = i;
+  return Object.keys(s).map((i) => i.toLocaleLowerCase()).reduce((i, a, c) => (i[a] = s[e[c]], i), {});
+}, ds = (s, e = !0) => s ? Object.entries(s).reduce((n, i) => {
+  const [a, c] = i;
   let l, r;
-  return Array.isArray(o) ? (r = "", o.forEach((u) => {
+  return Array.isArray(c) ? (r = "", c.forEach((u) => {
     l = e ? encodeURIComponent(u) : u, r += `${a}=${l}&`;
-  }), r.slice(0, -1)) : (l = e ? encodeURIComponent(o) : o, r = `${a}=${l}`), `${n}&${r}`;
-}, "").substr(1) : null, Tt = (s, e = {}) => {
-  const t = Object.assign({ method: s.method || "GET", headers: s.headers }, e), i = os(s.headers)["content-type"] || "";
+  }), r.slice(0, -1)) : (l = e ? encodeURIComponent(c) : c, r = `${a}=${l}`), `${n}&${r}`;
+}, "").substr(1) : null, Rt = (s, e = {}) => {
+  const t = Object.assign({ method: s.method || "GET", headers: s.headers }, e), i = us(s.headers)["content-type"] || "";
   if (typeof s.data == "string")
     t.body = s.data;
   else if (i.includes("application/x-www-form-urlencoded")) {
     const a = new URLSearchParams();
-    for (const [o, l] of Object.entries(s.data || {}))
-      a.set(o, l);
+    for (const [c, l] of Object.entries(s.data || {}))
+      a.set(c, l);
     t.body = a.toString();
   } else if (i.includes("multipart/form-data") || s.data instanceof FormData) {
     const a = new FormData();
@@ -251,25 +251,25 @@ const rs = async (s) => new Promise((e, t) => {
       for (const l of Object.keys(s.data))
         a.append(l, s.data[l]);
     t.body = a;
-    const o = new Headers(t.headers);
-    o.delete("content-type"), t.headers = o;
+    const c = new Headers(t.headers);
+    c.delete("content-type"), t.headers = c;
   } else (i.includes("application/json") || typeof s.data == "object") && (t.body = JSON.stringify(s.data));
   return t;
 };
-class ls extends ie {
+class hs extends ie {
   /**
    * Perform an Http request given a set of options
    * @param options Options to build the HTTP request
    */
   async request(e) {
-    const t = Tt(e, e.webFetchExtra), n = cs(e.params, e.shouldEncodeUrlParams), i = n ? `${e.url}?${n}` : e.url, a = await fetch(i, t), o = a.headers.get("content-type") || "";
+    const t = Rt(e, e.webFetchExtra), n = ds(e.params, e.shouldEncodeUrlParams), i = n ? `${e.url}?${n}` : e.url, a = await fetch(i, t), c = a.headers.get("content-type") || "";
     let { responseType: l = "text" } = a.ok ? e : {};
-    o.includes("application/json") && (l = "json");
+    c.includes("application/json") && (l = "json");
     let r, u;
     switch (l) {
       case "arraybuffer":
       case "blob":
-        u = await a.blob(), r = await rs(u);
+        u = await a.blob(), r = await ls(u);
         break;
       case "json":
         r = await a.json();
@@ -326,17 +326,17 @@ class ls extends ie {
   }
 }
 ne("CapacitorHttp", {
-  web: () => new ls()
+  web: () => new hs()
 });
-var vt;
-(function(s) {
-  s.Dark = "DARK", s.Light = "LIGHT", s.Default = "DEFAULT";
-})(vt || (vt = {}));
 var wt;
 (function(s) {
-  s.StatusBar = "StatusBar", s.NavigationBar = "NavigationBar";
+  s.Dark = "DARK", s.Light = "LIGHT", s.Default = "DEFAULT";
 })(wt || (wt = {}));
-class us extends ie {
+var yt;
+(function(s) {
+  s.StatusBar = "StatusBar", s.NavigationBar = "NavigationBar";
+})(yt || (yt = {}));
+class fs extends ie {
   async setStyle() {
     this.unavailable("not available for web");
   }
@@ -351,15 +351,15 @@ class us extends ie {
   }
 }
 ne("SystemBars", {
-  web: () => new us()
+  web: () => new fs()
 });
-function ds(s) {
+function ps(s) {
   return new DataView(Uint8Array.from(s).buffer);
 }
-function hs(s) {
+function gs(s) {
   return Array.from(new Uint8Array(s.buffer, s.byteOffset, s.byteLength));
 }
-function fs(s) {
+function ms(s) {
   return `0000${s.toString(16).padStart(4, "0")}-0000-1000-8000-00805f9b34fb`;
 }
 function ye(s) {
@@ -367,29 +367,29 @@ function ye(s) {
   let t, n, i = 1, a = 0;
   for (t = 0; t < s.length; t++)
     n = s.charCodeAt(t), (n > 47 && n < 58 || n > 64 && n < 71 || n > 96 && n < 103) && (a = a << 4 ^ (n > 64 ? n + 9 : n) & 15, (i ^= 1) && e.push(a & 255));
-  return ds(e);
+  return ps(e);
 }
 function be(s) {
-  return hs(s).map((e) => {
+  return gs(s).map((e) => {
     let t = e.toString(16);
     return t.length == 1 && (t = "0" + t), t;
   }).join("");
 }
-function ps(s) {
+function vs(s) {
   if (typeof s == "string")
     return s;
   if (typeof s == "number")
-    return fs(s);
+    return ms(s);
   throw new Error("Invalid UUID");
 }
-function yt(s) {
+function bt(s) {
   const e = {};
   if (s)
     return s.forEach((t, n) => {
       e[n.toString()] = t;
     }), e;
 }
-function bt(s) {
+function xt(s) {
   if (s !== void 0) {
     if (typeof s == "string") {
       const e = ye(s);
@@ -410,15 +410,15 @@ function He(s) {
   return s;
 }
 const m = ne("BluetoothLe", {
-  web: () => Promise.resolve().then(() => Qs).then((s) => new s.BluetoothLeWeb())
-}), gs = () => {
+  web: () => Promise.resolve().then(() => sn).then((s) => new s.BluetoothLeWeb())
+}), ws = () => {
   let s = Promise.resolve();
   return (e) => new Promise((t, n) => {
     s = s.then(() => e()).then(t).catch(n);
   });
 };
 function We(s) {
-  return s ? gs() : (e) => e();
+  return s ? ws() : (e) => e();
 }
 function E(s) {
   if (typeof s != "string")
@@ -427,7 +427,7 @@ function E(s) {
     throw new Error(`Invalid UUID format ${s}. Expected 128 bit string (e.g. "0000180d-0000-1000-8000-00805f9b34fb").`);
   return s;
 }
-class ms {
+class ys {
   constructor() {
     this.scanListener = null, this.eventListeners = /* @__PURE__ */ new Map(), this.queue = We(!0);
   }
@@ -538,10 +538,10 @@ class ms {
       if (t) {
         const a = `disconnected|${e}`;
         await ((i = this.eventListeners.get(a)) === null || i === void 0 ? void 0 : i.remove());
-        const o = await m.addListener(a, () => {
+        const c = await m.addListener(a, () => {
           t(e);
         });
-        this.eventListeners.set(a, o);
+        this.eventListeners.set(a, c);
       }
       await m.connect(Object.assign({ deviceId: e }, n));
     });
@@ -583,24 +583,24 @@ class ms {
   }
   async read(e, t, n, i) {
     return t = E(t), n = E(n), await this.queue(async () => {
-      const o = await m.read(Object.assign({
+      const c = await m.read(Object.assign({
         deviceId: e,
         service: t,
         characteristic: n
       }, i));
-      return this.convertValue(o.value);
+      return this.convertValue(c.value);
     });
   }
   async write(e, t, n, i, a) {
     return t = E(t), n = E(n), this.queue(async () => {
       if (!i?.buffer)
         throw new Error("Invalid data.");
-      let o = i;
-      A.getPlatform() !== "web" && (o = be(i)), await m.write(Object.assign({
+      let c = i;
+      A.getPlatform() !== "web" && (c = be(i)), await m.write(Object.assign({
         deviceId: e,
         service: t,
         characteristic: n,
-        value: o
+        value: c
       }, a));
     });
   }
@@ -608,12 +608,12 @@ class ms {
     t = E(t), n = E(n), await this.queue(async () => {
       if (!i?.buffer)
         throw new Error("Invalid data.");
-      let o = i;
-      A.getPlatform() !== "web" && (o = be(i)), await m.writeWithoutResponse(Object.assign({
+      let c = i;
+      A.getPlatform() !== "web" && (c = be(i)), await m.writeWithoutResponse(Object.assign({
         deviceId: e,
         service: t,
         characteristic: n,
-        value: o
+        value: c
       }, a));
     });
   }
@@ -628,7 +628,7 @@ class ms {
       return this.convertValue(l.value);
     });
   }
-  async writeDescriptor(e, t, n, i, a, o) {
+  async writeDescriptor(e, t, n, i, a, c) {
     return t = E(t), n = E(n), i = E(i), this.queue(async () => {
       if (!a?.buffer)
         throw new Error("Invalid data.");
@@ -639,14 +639,14 @@ class ms {
         characteristic: n,
         descriptor: i,
         value: l
-      }, o));
+      }, c));
     });
   }
   async startNotifications(e, t, n, i, a) {
     t = E(t), n = E(n), await this.queue(async () => {
-      var o;
+      var c;
       const l = `notification|${e}|${t}|${n}`;
-      await ((o = this.eventListeners.get(l)) === null || o === void 0 ? void 0 : o.remove());
+      await ((c = this.eventListeners.get(l)) === null || c === void 0 ? void 0 : c.remove());
       const r = await m.addListener(l, (u) => {
         i(this.convertValue(u?.value));
       });
@@ -669,7 +669,7 @@ class ms {
     });
   }
   validateRequestBleDeviceOptions(e) {
-    return e = Object.assign({}, e), e.services && (e.services = e.services.map(E)), e.optionalServices && (e.optionalServices = e.optionalServices.map(E)), e.serviceData && A.getPlatform() !== "web" && (e.serviceData = e.serviceData.map((t) => Object.assign(Object.assign({}, t), { serviceUuid: E(t.serviceUuid), dataPrefix: Pe(t.dataPrefix), mask: Pe(t.mask) }))), e.manufacturerData && (A.getPlatform() !== "web" ? e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Pe(t.dataPrefix), mask: Pe(t.mask) })) : e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: bt(t.dataPrefix), mask: bt(t.mask) }))), e;
+    return e = Object.assign({}, e), e.services && (e.services = e.services.map(E)), e.optionalServices && (e.optionalServices = e.optionalServices.map(E)), e.serviceData && A.getPlatform() !== "web" && (e.serviceData = e.serviceData.map((t) => Object.assign(Object.assign({}, t), { serviceUuid: E(t.serviceUuid), dataPrefix: Pe(t.dataPrefix), mask: Pe(t.mask) }))), e.manufacturerData && (A.getPlatform() !== "web" ? e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Pe(t.dataPrefix), mask: Pe(t.mask) })) : e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: xt(t.dataPrefix), mask: xt(t.mask) }))), e;
   }
   convertValue(e) {
     return typeof e == "string" ? ye(e) : e === void 0 ? new DataView(new ArrayBuffer(0)) : e;
@@ -683,8 +683,8 @@ class ms {
     return t;
   }
 }
-const ue = new ms(), ze = 256, Ke = 10, vs = 4e3;
-class _t {
+const ue = new ys(), ze = 256, Ke = 10, bs = 4e3;
+class Mt {
   constructor() {
     this.sampleFns = [], this.statusFns = [], this.tareKg = 0, this.lastRaw = 0, this.lostTimer = null, this.status = "idle";
   }
@@ -703,18 +703,18 @@ class _t {
   emitRaw(e) {
     this.lastRaw = e;
     const t = { t: Date.now(), kg: e - this.tareKg };
-    this.setStatus("live"), this.sampleFns.forEach((n) => n(t)), this.lostTimer && clearTimeout(this.lostTimer), this.lostTimer = setTimeout(() => this.setStatus("lost"), vs);
+    this.setStatus("live"), this.sampleFns.forEach((n) => n(t)), this.lostTimer && clearTimeout(this.lostTimer), this.lostTimer = setTimeout(() => this.setStatus("lost"), bs);
   }
   clearLost() {
     this.lostTimer && clearTimeout(this.lostTimer), this.lostTimer = null;
   }
 }
-function xt(s) {
+function St(s) {
   let e = "";
   for (let t = 0; t < s.byteLength; t++) e += s.getUint8(t).toString(16).padStart(2, "0") + " ";
   return e.trim();
 }
-function St(s, e) {
+function kt(s, e) {
   let t = 0;
   for (; t < s.byteLength; ) {
     const n = s.getUint8(t);
@@ -726,10 +726,10 @@ function St(s, e) {
     t += n + 1;
   }
 }
-function ws(s) {
+function xs(s) {
   return s.byteLength < Ke + 2 ? null : (s.getUint8(Ke) << 8 | s.getUint8(Ke + 1)) / 100;
 }
-class xe extends _t {
+class xe extends Mt {
   constructor() {
     super(...arguments), this.name = "WeiHeng scale", this.scanning = !1, this.seen = /* @__PURE__ */ new Map(), this.onSeen = () => {
     }, this.lastScanStart = 0, this.healTimer = null, this.lastPacketAt = 0, this.restarts = 0;
@@ -762,9 +762,9 @@ class xe extends _t {
       (e) => {
         const t = e.localName ?? e.device.name ?? "", n = e.manufacturerData ?? {}, i = Object.keys(n);
         let a = n[String(ze)] ?? n[ze.toString(16)];
-        !a && /^(IF_|WH-|WEIHENG)/i.test(t) && i.length && (a = n[i[0]]), !a && e.rawAdvertisement && (a = St(e.rawAdvertisement, ze) ?? (/^IF_/i.test(t) ? St(e.rawAdvertisement) : void 0));
-        const o = a ? ws(a) : null, l = { id: e.device.deviceId, name: t, rssi: e.rssi ?? 0, keys: i.join(","), hex: a ? xt(a) : e.rawAdvertisement ? xt(e.rawAdvertisement).slice(0, 60) : "", kg: o, t: Date.now() };
-        this.seen.set(l.id, l), this.onSeen(l), o !== null && (this.lastPacketAt = Date.now(), this.emitRaw(o));
+        !a && /^(IF_|WH-|WEIHENG)/i.test(t) && i.length && (a = n[i[0]]), !a && e.rawAdvertisement && (a = kt(e.rawAdvertisement, ze) ?? (/^IF_/i.test(t) ? kt(e.rawAdvertisement) : void 0));
+        const c = a ? xs(a) : null, l = { id: e.device.deviceId, name: t, rssi: e.rssi ?? 0, keys: i.join(","), hex: a ? St(a) : e.rawAdvertisement ? St(e.rawAdvertisement).slice(0, 60) : "", kg: c, t: Date.now() };
+        this.seen.set(l.id, l), this.onSeen(l), c !== null && (this.lastPacketAt = Date.now(), this.emitRaw(c));
       }
     );
   }
@@ -777,7 +777,7 @@ class xe extends _t {
     this.scanning = !1, this.clearLost(), this.setStatus("idle");
   }
 }
-class ys extends _t {
+class Ss extends Mt {
   constructor() {
     super(...arguments), this.name = "Simulator", this.timer = null, this.effort = 0, this.exact = !1, this.current = 0, this.fatigue = 0;
   }
@@ -805,7 +805,7 @@ function le(s) {
   return s.performedAt ?? s.startedAt;
 }
 const Te = 2;
-class bs {
+class ks {
   constructor() {
     this.samples = [], this.t0 = 0, this.recording = !1;
   }
@@ -830,7 +830,7 @@ class bs {
     this.recording = !1;
     const t = this.samples;
     if (t.length < 3) return null;
-    const n = Rt(t);
+    const n = It(t);
     return {
       id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       exercise: e.exercise,
@@ -840,39 +840,39 @@ class bs {
       durationS: t[t.length - 1].t,
       samples: t,
       ...n,
-      reps: Mt(t)
+      reps: Ft(t)
     };
   }
 }
-function Rt(s) {
+function It(s) {
   let e = 0, t = 0, n = 0;
   for (let l = 0; l < s.length; l++) {
     const r = Math.max(0, s[l].kg);
     e = Math.max(e, r), t += r, l > 0 && (n += r * (s[l].t - s[l - 1].t));
   }
   const i = t / s.length, a = s.filter((l) => l.kg > Te);
-  let o = 0;
+  let c = 0;
   if (a.length >= 10) {
     const l = Math.max(3, Math.floor(a.length * 0.2)), r = Math.max(...a.slice(0, l).map((d) => d.kg)), u = Math.max(...a.slice(-l).map((d) => d.kg));
-    o = r > 0 ? Math.max(0, (r - u) / r * 100) : 0;
+    c = r > 0 ? Math.max(0, (r - u) / r * 100) : 0;
   }
-  return { peak: B(e), avg: B(i), output: B(n), inroad: B(o) };
+  return { peak: B(e), avg: B(i), output: B(n), inroad: B(c) };
 }
-function Mt(s) {
+function Ft(s) {
   if (s.length < 5) return [];
   const e = Math.max(...s.map((r) => r.kg));
   if (e < Te * 2) return [];
   const t = Math.max(Te, e * 0.35), n = Math.max(Te * 0.5, e * 0.2), i = [];
-  let a = !1, o = 0, l = 0;
+  let a = !1, c = 0, l = 0;
   for (const r of s)
-    !a && r.kg >= t ? (a = !0, o = r.t, l = r.kg) : a && (l = Math.max(l, r.kg), r.kg <= n && (r.t - o >= 0.6 && i.push({ index: i.length + 1, peak: B(l), startS: B(o), endS: B(r.t), durationS: B(r.t - o) }), a = !1));
+    !a && r.kg >= t ? (a = !0, c = r.t, l = r.kg) : a && (l = Math.max(l, r.kg), r.kg <= n && (r.t - c >= 0.6 && i.push({ index: i.length + 1, peak: B(l), startS: B(c), endS: B(r.t), durationS: B(r.t - c) }), a = !1));
   if (a) {
     const r = s[s.length - 1].t;
-    r - o >= 0.6 && i.push({ index: i.length + 1, peak: B(l), startS: B(o), endS: B(r), durationS: B(r - o) });
+    r - c >= 0.6 && i.push({ index: i.length + 1, peak: B(l), startS: B(c), endS: B(r), durationS: B(r - c) });
   }
   return i.length >= 2 ? i : [];
 }
-function xs(s) {
+function Es(s) {
   if (s.length < 6) return null;
   const e = s.slice(-Math.max(3, Math.floor(s.length / 3)));
   return B(e.reduce((t, n) => t + n.peak, 0) / e.length);
@@ -880,7 +880,7 @@ function xs(s) {
 function B(s) {
   return Math.round(s * 100) / 100;
 }
-class It {
+class Bt {
   constructor(e) {
     this.canvas = e, this.dpr = Math.max(1, window.devicePixelRatio || 1), this.opts = { windowS: 60, zone: null, ghost: null, marks: [] }, this.last = null, this.ctx = e.getContext("2d"), this.resize(), new ResizeObserver(() => this.resize()).observe(e.parentElement ?? e);
   }
@@ -892,16 +892,16 @@ class It {
     this.last = [e, t, n], this.render(e, t, n);
   }
   render(e, t, n) {
-    const { ctx: i } = this, a = this.canvas.width / this.dpr, o = this.canvas.height / this.dpr, l = 42, r = 12, u = 12, d = 24, h = a - l - r, f = o - u - d, p = getComputedStyle(document.getElementById("view-force") ?? document.documentElement), v = p.getPropertyValue("--muted").trim() || "#888", y = p.getPropertyValue("--grid").trim() || "#333", b = p.getPropertyValue("--accent").trim() || "#e8552f", x = p.getPropertyValue("--ghost").trim() || "#7a7a7a", V = p.getPropertyValue("--zone").trim() || "rgba(60,180,90,0.18)";
-    i.clearRect(0, 0, a, o);
+    const { ctx: i } = this, a = this.canvas.width / this.dpr, c = this.canvas.height / this.dpr, l = 42, r = 12, u = 12, d = 24, h = a - l - r, f = c - u - d, p = getComputedStyle(document.getElementById("view-force") ?? document.documentElement), v = p.getPropertyValue("--muted").trim() || "#888", y = p.getPropertyValue("--grid").trim() || "#333", b = p.getPropertyValue("--accent").trim() || "#e8552f", x = p.getPropertyValue("--ghost").trim() || "#7a7a7a", j = p.getPropertyValue("--zone").trim() || "rgba(60,180,90,0.18)";
+    i.clearRect(0, 0, a, c);
     const M = Math.max(this.opts.windowS, Math.ceil(t / 10) * 10 || 10), U = this.opts.ghost ?? [];
     let I = 10;
     for (const g of e) I = Math.max(I, g.kg);
     for (const g of U) I = Math.max(I, g.kg);
-    this.opts.zone && (I = Math.max(I, this.opts.zone.hi)), I = Ss(I * 1.1);
+    this.opts.zone && (I = Math.max(I, this.opts.zone.hi)), I = Ls(I * 1.1);
     const F = (g) => l + g / M * h, D = (g) => u + f - Math.max(0, g) / I * f;
     if (this.opts.zone) {
-      i.fillStyle = V;
+      i.fillStyle = j;
       const g = D(this.opts.zone.hi), S = D(this.opts.zone.lo);
       i.fillRect(l, g, h, S - g);
     }
@@ -915,7 +915,7 @@ class It {
     const $ = M <= 30 ? 5 : M <= 90 ? 10 : 30;
     for (let g = 0; g <= M; g += $) {
       const S = F(g);
-      i.beginPath(), i.moveTo(S, u), i.lineTo(S, u + f), i.stroke(), i.fillText(ks(g), S, u + f + 6);
+      i.beginPath(), i.moveTo(S, u), i.lineTo(S, u + f), i.stroke(), i.fillText(Cs(g), S, u + f + 6);
     }
     if (this.opts.marks?.length) {
       i.strokeStyle = x, i.setLineDash([3, 4]);
@@ -930,26 +930,26 @@ class It {
     } else n > 0 && (i.fillStyle = b, i.beginPath(), i.arc(F(0), D(n), 4, 0, Math.PI * 2), i.fill());
   }
 }
-function Ss(s) {
+function Ls(s) {
   const e = [10, 20, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500];
   for (const t of e) if (s <= t) return t;
   return Math.ceil(s / 100) * 100;
 }
-function ks(s) {
+function Cs(s) {
   const e = Math.floor(s / 60), t = s % 60;
   return `${e}:${t.toString().padStart(2, "0")}`;
 }
-function Ne(s, e = {}) {
-  const t = e.hold ?? 10, n = e.rest ?? 20, i = e.reps ?? 6, a = e.ramp ?? 5, o = e.total ?? 60;
+function Ue(s, e = {}) {
+  const t = e.hold ?? 10, n = e.rest ?? 20, i = e.reps ?? 6, a = e.ramp ?? 5, c = e.total ?? 60;
   switch (s) {
     case "free":
       return { id: s, label: "Free set", describe: "Open-ended. Start, work, stop.", phases: [] };
     case "countdown":
       return {
         id: s,
-        label: `Countdown ${o}s`,
+        label: `Countdown ${c}s`,
         describe: "One continuous max effort for the whole timer — the ARX protocol.",
-        phases: [{ name: "Get ready", seconds: 3, cue: "rest" }, { name: "GO — max effort", seconds: o, cue: "work" }]
+        phases: [{ name: "Get ready", seconds: 3, cue: "rest" }, { name: "GO — max effort", seconds: c, cue: "work" }]
       };
     case "ramp":
       return {
@@ -988,10 +988,10 @@ function Ne(s, e = {}) {
         repeat: 24
       };
     default:
-      return Ne("free");
+      return Ue("free");
   }
 }
-function Ft(s) {
+function qt(s) {
   if (!s.repeat || s.phases.length < 2) return s.phases;
   const [e, ...t] = s.phases, n = [e];
   for (let i = 0; i < s.repeat; i++)
@@ -999,7 +999,7 @@ function Ft(s) {
       i === s.repeat - 1 && a === t[t.length - 1] && a.cue === "rest" || n.push({ ...a, name: t.length > 1 && a.cue !== "rest" ? `${a.name} ${i + 1}/${s.repeat}` : a.name });
   return n;
 }
-class Es {
+class Ps {
   constructor() {
     this.timeline = [], this.idx = -1, this.phaseStart = 0, this.timer = null, this.running = !1, this.onPhase = () => {
     }, this.onTick = () => {
@@ -1007,7 +1007,7 @@ class Es {
     };
   }
   start(e) {
-    this.timeline = Ft(e), this.idx = -1, this.running = !0, this.next(), this.timer = setInterval(() => this.tick(), 100);
+    this.timeline = qt(e), this.idx = -1, this.running = !0, this.next(), this.timer = setInterval(() => this.tick(), 100);
   }
   stop() {
     this.timer && clearInterval(this.timer), this.timer = null, this.running = !1;
@@ -1029,20 +1029,20 @@ class Es {
     t <= 0 ? this.next() : this.onTick(t, e);
   }
 }
-var kt;
+var Et;
 (function(s) {
   s[s.Flush = 0] = "Flush", s[s.Add = 1] = "Add";
-})(kt || (kt = {}));
+})(Et || (Et = {}));
 const $e = ne("TextToSpeech", {
-  web: () => Promise.resolve().then(() => tn).then((s) => new s.TextToSpeechWeb())
+  web: () => Promise.resolve().then(() => an).then((s) => new s.TextToSpeechWeb())
 }), De = A.isNativePlatform();
 let Ge = null;
-function Ls() {
+function $s() {
   return Ge || (Ge = new (window.AudioContext || window.webkitAudioContext)()), Ge;
 }
 function ae(s = 880, e = 120, t = 0.25) {
   try {
-    const n = Ls(), i = n.createOscillator(), a = n.createGain();
+    const n = $s(), i = n.createOscillator(), a = n.createGain();
     i.frequency.value = s, i.type = "sine", a.gain.value = t, i.connect(a), a.connect(n.destination), i.start(), a.gain.exponentialRampToValueAtTime(1e-4, n.currentTime + e / 1e3), i.stop(n.currentTime + e / 1e3);
   } catch {
   }
@@ -1057,7 +1057,7 @@ const se = {
   inZone: () => ae(1e3, 50, 0.1),
   outZone: () => ae(300, 120, 0.2)
 };
-class Cs {
+class Ds {
   constructor() {
     if (this.enabled = !0, this.onSpeak = () => {
     }, this.lastSpoke = 0, this.lastText = "", this.keep = [], this.voice = null, this.busySince = 0, this.nativeBusy = !1, this.rate = 1.2, this.pitch = 1, "speechSynthesis" in window) {
@@ -1124,22 +1124,22 @@ class Cs {
         t && speechSynthesis.cancel(), speechSynthesis.resume();
         const a = new SpeechSynthesisUtterance(e);
         a.rate = this.rate, a.pitch = this.pitch, a.lang = "en-US", this.voice && (a.voice = this.voice), this.keep.push(a), this.keep.length > 8 && this.keep.shift(), a.onend = () => {
-          const o = this.keep.indexOf(a);
-          o >= 0 && this.keep.splice(o, 1);
+          const c = this.keep.indexOf(a);
+          c >= 0 && this.keep.splice(c, 1);
         }, speechSynthesis.speak(a), this.lastSpoke = i, this.lastText = e;
       } catch {
       }
   }
 }
-function Ps(s) {
+function Os(s) {
   const e = Math.floor(s / 60), t = s % 60;
   return t === 0 && e > 0 ? e === 1 ? "1 minute" : `${e} minutes` : String(t);
 }
-const Et = ne("KeepAwake", {
-  web: () => Promise.resolve().then(() => nn).then((s) => new s.KeepAwakeWeb())
-}), Bt = ne("Preferences", {
-  web: () => Promise.resolve().then(() => rn).then((s) => new s.PreferencesWeb())
-}), ge = "ufl.sets.v1", Oe = "ufl.max.v1", Ye = "ufl.exercises.v1", qt = [
+const Lt = ne("KeepAwake", {
+  web: () => Promise.resolve().then(() => on).then((s) => new s.KeepAwakeWeb())
+}), Nt = ne("Preferences", {
+  web: () => Promise.resolve().then(() => ln).then((s) => new s.PreferencesWeb())
+}), ge = "ufl.sets.v1", Oe = "ufl.max.v1", Ye = "ufl.exercises.v1", Ut = [
   // Isometric
   "Isometric Row",
   "Isometric Deadlift Pull",
@@ -1157,12 +1157,12 @@ const Et = ne("KeepAwake", {
   "SR One-Arm Chest Press",
   "SR Curl / Pushdown"
 ];
-function $s(s) {
+function As(s) {
   return /^SR\b|self.?resisted/i.test(s) ? "self-resisted" : "iso";
 }
 async function Xe(s, e) {
   try {
-    const t = A.isNativePlatform() ? (await Bt.get({ key: s })).value : localStorage.getItem(s);
+    const t = A.isNativePlatform() ? (await Nt.get({ key: s })).value : localStorage.getItem(s);
     return t ? JSON.parse(t) : e;
   } catch {
     return e;
@@ -1170,7 +1170,7 @@ async function Xe(s, e) {
 }
 async function Q(s, e) {
   const t = JSON.stringify(e);
-  A.isNativePlatform() ? await Bt.set({ key: s, value: t }) : localStorage.setItem(s, t);
+  A.isNativePlatform() ? await Nt.set({ key: s, value: t }) : localStorage.setItem(s, t);
 }
 const P = {
   async sets() {
@@ -1200,37 +1200,37 @@ const P = {
     delete e[s], await Q(Oe, e);
   },
   async exercises() {
-    return Xe(Ye, qt);
+    return Xe(Ye, Ut);
   },
   /** Rename an exercise in every stored set and max (and the local list). */
   async renameExercise(s, e) {
     const t = await this.sets();
-    for (const o of t) o.exercise === s && (o.exercise = e);
+    for (const c of t) c.exercise === s && (c.exercise = e);
     await Q(ge, t);
     const n = await this.maxes(), i = {};
-    for (const [o, l] of Object.entries(n)) {
-      const [r, u] = o.split("|"), d = `${r === s ? e : r}|${u}`;
+    for (const [c, l] of Object.entries(n)) {
+      const [r, u] = c.split("|"), d = `${r === s ? e : r}|${u}`;
       (!i[d] || i[d].kg < l.kg) && (i[d] = l);
     }
     await Q(Oe, i);
     const a = await this.exercises();
     if (a.includes(s)) {
-      const o = a.map((l) => l === s ? e : l);
-      await Q(Ye, [...new Set(o)]);
+      const c = a.map((l) => l === s ? e : l);
+      await Q(Ye, [...new Set(c)]);
     }
   },
   async saveExercises(s) {
     await Q(Ye, s);
   }
 };
-function Ds(s) {
+function Ts(s) {
   s.CapacitorUtils.Synapse = new Proxy(
     {},
     {
       get(e, t) {
         return new Proxy({}, {
           get(n, i) {
-            return (a, o, l) => {
+            return (a, c, l) => {
               const r = s.Capacitor.Plugins[t];
               if (r === void 0) {
                 l(new Error(`Capacitor plugin ${t} not found`));
@@ -1243,7 +1243,7 @@ function Ds(s) {
               (async () => {
                 try {
                   const u = await r[i](a);
-                  o(u);
+                  c(u);
                 } catch (u) {
                   l(u);
                 }
@@ -1255,7 +1255,7 @@ function Ds(s) {
     }
   );
 }
-function Os(s) {
+function _s(s) {
   s.CapacitorUtils.Synapse = new Proxy(
     {},
     {
@@ -1265,8 +1265,8 @@ function Os(s) {
     }
   );
 }
-function As(s = !1) {
-  typeof window > "u" || (window.CapacitorUtils = window.CapacitorUtils || {}, window.Capacitor !== void 0 && !s ? Ds(window) : window.cordova !== void 0 && Os(window));
+function Rs(s = !1) {
+  typeof window > "u" || (window.CapacitorUtils = window.CapacitorUtils || {}, window.Capacitor !== void 0 && !s ? Ts(window) : window.cordova !== void 0 && _s(window));
 }
 var st;
 (function(s) {
@@ -1276,19 +1276,19 @@ var Ie;
 (function(s) {
   s.UTF8 = "utf8", s.ASCII = "ascii", s.UTF16 = "utf16";
 })(Ie || (Ie = {}));
-const Ts = ne("Filesystem", {
-  web: () => Promise.resolve().then(() => cn).then((s) => new s.FilesystemWeb())
+const Ms = ne("Filesystem", {
+  web: () => Promise.resolve().then(() => dn).then((s) => new s.FilesystemWeb())
 });
-As();
-const _s = ne("Share", {
-  web: () => Promise.resolve().then(() => un).then((s) => new s.ShareWeb())
+Rs();
+const Is = ne("Share", {
+  web: () => Promise.resolve().then(() => fn).then((s) => new s.ShareWeb())
 });
-function Rs(s) {
+function Fs(s) {
   const e = ["id", "date_performed", "recorded_at", "exercise", "side", "mode", "duration_s", "peak_kg", "avg_kg", "output_kgs", "inroad_pct", "reps", "auto_reps", "rep_peaks"], t = s.map((n) => [
     n.id,
     Ee(le(n)),
     new Date(n.startedAt).toISOString(),
-    Lt(n.exercise),
+    Ct(n.exercise),
     n.side,
     n.mode,
     n.durationS.toFixed(1),
@@ -1298,22 +1298,22 @@ function Rs(s) {
     n.inroad,
     fe(n),
     n.reps?.length ?? 0,
-    Lt((n.reps ?? []).map((i) => i.peak).join(" "))
+    Ct((n.reps ?? []).map((i) => i.peak).join(" "))
   ].join(","));
   return [e.join(","), ...t].join(`
 `);
 }
-function Ms(s) {
+function Bs(s) {
   return ["t_s,kg", ...s.samples.map((e) => `${e.t.toFixed(2)},${e.kg.toFixed(2)}`)].join(`
 `);
 }
-function Lt(s) {
+function Ct(s) {
   return `"${s.replace(/"/g, '""')}"`;
 }
 async function nt(s, e, t) {
   if (A.isNativePlatform()) {
-    const o = await Ts.writeFile({ path: s, data: e, directory: st.Cache, encoding: Ie.UTF8 });
-    await _s.share({ title: s, files: [o.uri] });
+    const c = await Ms.writeFile({ path: s, data: e, directory: st.Cache, encoding: Ie.UTF8 });
+    await Is.share({ title: s, files: [c.uri] });
     return;
   }
   const n = new Blob([e], { type: t }), i = URL.createObjectURL(n), a = document.createElement("a");
@@ -1325,7 +1325,7 @@ function Ee(s) {
   const e = new Date(s);
   return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}`;
 }
-class Is {
+class qs {
   constructor(e) {
     this.video = e, this.stream = null, this.facing = "user";
   }
@@ -1349,25 +1349,29 @@ class Is {
 function z() {
   return window.GymLog ?? null;
 }
-function Ut(s) {
+function jt(s) {
   return {
     id: `fl-${s.id}`,
     date: Ee(le(s)),
     exercise: s.exercise,
     kg: s.peak,
     reps: fe(s),
-    variation: $s(s.exercise),
+    variation: As(s.exercise),
     at: s.startedAt,
     dur: s.durationS,
     note: [s.side !== "both" ? s.side : "", s.mode, s.note].filter(Boolean).join(" · ")
   };
 }
-function Fs() {
+function Ns() {
   const s = z();
   if (s)
-    for (const e of qt) s.addExercise(e);
+    for (const e of Ut) s.addExercise(e);
 }
-let W = null;
+let H = null;
+const Vt = /* @__PURE__ */ new Map();
+function Us(s) {
+  Vt.get(s)?.();
+}
 function ce(s) {
   return s.replace(/[&<>"']/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[e]);
 }
@@ -1379,16 +1383,16 @@ function Je(s, e) {
     const i = s.value;
     t.textContent = i || (e.allOption?.label ?? "Choose…"), t.disabled = s.disabled;
   };
-  return n(), new MutationObserver(n).observe(s, { attributes: !0, childList: !0 }), s.addEventListener("change", n), t.onclick = () => Bs(s, e, n), n;
+  return n(), new MutationObserver(n).observe(s, { attributes: !0, childList: !0 }), s.addEventListener("change", n), t.onclick = () => Pt(s, e, n), Vt.set(s, () => Pt(s, e, n)), n;
 }
-function Bs(s, e, t) {
+function Pt(s, e, t) {
   me();
   const n = document.getElementById("view-force") ?? document.body;
-  W = document.createElement("div"), W.className = "picker-overlay", W.innerHTML = `<div class="picker-panel">
+  H = document.createElement("div"), H.className = "picker-overlay", H.innerHTML = `<div class="picker-panel">
     <div class="picker-head"><input type="text" class="picker-search" placeholder="Search exercises…" autocomplete="off" /><button type="button" class="sm ghost picker-close">✕</button></div>
     <div class="picker-list"></div>
-  </div>`, n.appendChild(W);
-  const i = W.querySelector(".picker-search"), a = W.querySelector(".picker-list"), o = (r) => {
+  </div>`, n.appendChild(H);
+  const i = H.querySelector(".picker-search"), a = H.querySelector(".picker-list"), c = (r) => {
     s.value = r, s.dispatchEvent(new Event("change", { bubbles: !0 })), t(), me();
   }, l = () => {
     const r = i.value.trim().toLowerCase(), u = e.recent().filter((p) => !r || p.toLowerCase().includes(r)), d = e.all().filter((p) => !u.includes(p) && (!r || p.toLowerCase().includes(r))).sort((p, v) => p.localeCompare(v));
@@ -1399,57 +1403,61 @@ function Bs(s, e, t) {
       p.onclick = async () => {
         if (p.dataset.create) {
           const v = i.value.trim();
-          await e.onCreate(v) && o(v);
+          await e.onCreate(v) && c(v);
           return;
         }
-        o(p.dataset.v);
+        c(p.dataset.v);
       };
     });
   };
   i.oninput = l, i.onkeydown = (r) => {
     r.key === "Escape" && me(), r.key === "Enter" && a.querySelector(".picker-item")?.click();
-  }, W.querySelector(".picker-close").onclick = me, W.onclick = (r) => {
-    r.target === W && me();
+  }, H.querySelector(".picker-close").onclick = me, H.onclick = (r) => {
+    r.target === H && me();
   }, l(), setTimeout(() => i.focus(), 50);
 }
 function me() {
-  W?.remove(), W = null;
+  H?.remove(), H = null;
 }
-const c = (s) => document.getElementById(s);
-let N = null, ee = null, Fe = 0, w = [], q = [], Be = null, re = 0, K = 0, de = null, Y = !0, Se = localStorage.getItem("ufl.ghostOn") !== "0", Ae = null;
+const o = (s) => document.getElementById(s);
+let W = null, ee = null, Fe = 0, w = [], q = [], Be = null, re = 0, K = 0, de = null, Y = !0, Se = localStorage.getItem("ufl.ghostOn") !== "0", Ae = null;
 const pe = (s, e) => localStorage.getItem(s) ?? e;
 let _e = Math.max(1, Number(pe("ufl.calloutEvery", "5"))), it = pe("ufl.calloutOn", "1") === "1", at = pe("ufl.secBeep", "0") === "1", rt = pe("ufl.secCount", "0") === "1", Re = null, Ze = -1;
-const k = new Cs(), j = new bs(), te = new Es(), X = new It(c("chart")), ve = c("progressChart"), qs = {
+const k = new Ds(), N = new ks(), te = new Ps(), X = new Bt(o("chart")), ve = o("progressChart"), js = {
   countdown: [{ key: "total", label: "seconds", def: 60 }],
   ramp: [{ key: "ramp", label: "ramp s", def: 5 }, { key: "hold", label: "hold s", def: 10 }],
   repeaters: [{ key: "reps", label: "reps", def: 6 }, { key: "hold", label: "on s", def: 10 }, { key: "rest", label: "off s", def: 20 }]
 };
-async function Us(s, e) {
+function ot() {
+  const s = o("exercise").value || "Choose exercise", e = o("side").value, t = o("protocol").value;
+  o("hdrExName").textContent = s, o("hdrExMeta").textContent = [e !== "both" ? e : "", t].filter(Boolean).join(" · ");
+}
+async function Vs(s, e) {
   const t = z();
   if (t) {
     if (!t.renameExercise(s, e)) return;
     w = t.exerciseNames();
   } else
-    await Nt(s, e), w = await P.exercises();
+    await Ht(s, e), w = await P.exercises();
   oe(), J(), Z(), await R();
 }
-async function Nt(s, e) {
-  await P.renameExercise(s, e), q = await P.sets(), c("exercise").value === s && (oe(), c("exercise").value = e);
+async function Ht(s, e) {
+  await P.renameExercise(s, e), q = await P.sets(), o("exercise").value === s && (oe(), o("exercise").value = e);
 }
-async function Ns() {
-  Fs(), w = z()?.exerciseNames() ?? await P.exercises(), q = await P.sets(), oe(), Vt(), await R(), Z(), J(), Xs(), Zt(), k.enabled = c("voiceOn").checked;
+async function Hs() {
+  Ns(), w = z()?.exerciseNames() ?? await P.exercises(), q = await P.sets(), oe(), zt(), await R(), Z(), J(), Qs(), ts(), k.enabled = o("voiceOn").checked;
 }
 function Qe() {
   const s = /* @__PURE__ */ new Map();
   for (const e of q) s.set(e.exercise, Math.max(s.get(e.exercise) ?? 0, e.startedAt));
-  for (const e of Object.keys(jt)) {
+  for (const e of Object.keys(Wt)) {
     const t = e.split("|")[0];
     s.has(t) || s.set(t, 0);
   }
   return [...s.entries()].filter(([e]) => w.includes(e)).sort((e, t) => t[1] - e[1]).map(([e]) => e);
 }
-let jt = {};
-async function Ct(s) {
+let Wt = {};
+async function $t(s) {
   if (s = s.trim(), !s) return !1;
   if (!w.includes(s)) {
     const e = z();
@@ -1458,79 +1466,80 @@ async function Ct(s) {
   return oe(), J(), !0;
 }
 function oe() {
+  setTimeout(ot, 0);
   for (const t of ["exercise", "maxExercise"]) {
-    const n = c(t), i = n.value;
+    const n = o(t), i = n.value;
     n.innerHTML = w.map((a) => `<option>${T(a)}</option>`).join(""), i && w.includes(i) && (n.value = i);
   }
-  const s = c("histExercise"), e = s.value;
+  const s = o("histExercise"), e = s.value;
   s.innerHTML = '<option value="">All</option>' + w.map((t) => `<option>${T(t)}</option>`).join(""), s.value = e;
 }
-function Vt() {
-  const s = c("protocol").value, e = c("params");
-  e.innerHTML = (qs[s] ?? []).map((t) => `<label>${t.label}<input type="number" data-k="${t.key}" value="${t.def}" min="1" /></label>`).join(""), c("protocolHelp").textContent = Ne(s, ut()).describe;
-}
-function ut() {
-  const s = {};
-  return c("params").querySelectorAll("input").forEach((e) => s[e.dataset.k] = Number(e.value) || 1), s;
-}
-async function R() {
-  const s = c("exercise").value, e = c("side").value, t = q.filter((i) => i.exercise === s && i.side === e);
-  Be = t.length ? t[t.length - 1] : null, re = t.reduce((i, a) => Math.max(i, a.output), 0);
-  const n = await P.maxes();
-  jt = n, K = n[`${s}|${e}`]?.kg ?? 0, c("zoneMax").textContent = K ? `(max ${K} kg → ${Me().lo.toFixed(1)}–${Me().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)", c("sGoal").textContent = re ? C(re) : "–", X.opts.ghost = Se ? Be?.samples ?? null : null, X.opts.zone = dt() ? Me() : null, j.recording || (X.opts.marks = []);
+function zt() {
+  const s = o("protocol").value, e = o("params");
+  e.innerHTML = (js[s] ?? []).map((t) => `<label>${t.label}<input type="number" data-k="${t.key}" value="${t.def}" min="1" /></label>`).join(""), o("protocolHelp").textContent = Ue(s, dt()).describe;
 }
 function dt() {
-  return c("zoneOn").checked && K > 0;
+  const s = {};
+  return o("params").querySelectorAll("input").forEach((e) => s[e.dataset.k] = Number(e.value) || 1), s;
+}
+async function R() {
+  const s = o("exercise").value, e = o("side").value, t = q.filter((i) => i.exercise === s && i.side === e);
+  Be = t.length ? t[t.length - 1] : null, re = t.reduce((i, a) => Math.max(i, a.output), 0);
+  const n = await P.maxes();
+  Wt = n, K = n[`${s}|${e}`]?.kg ?? 0, o("zoneMax").textContent = K ? `(max ${K} kg → ${Me().lo.toFixed(1)}–${Me().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)", o("sGoal").textContent = re ? C(re) : "–", X.opts.ghost = Se ? Be?.samples ?? null : null, X.opts.zone = ht() ? Me() : null, N.recording || (X.opts.marks = []);
+}
+function ht() {
+  return o("zoneOn").checked && K > 0;
 }
 function Me() {
-  const s = Number(c("zoneLo").value) / 100 * K, e = Number(c("zoneHi").value) / 100 * K;
+  const s = Number(o("zoneLo").value) / 100 * K, e = Number(o("zoneHi").value) / 100 * K;
   return { lo: Math.min(s, e), hi: Math.max(s, e) };
 }
-async function ot(s) {
-  N && await N.stop(), N = s, s.onStatus(qe), s.onSample((e) => {
-    Fe = e.kg, G === "live" && (c("statusKg").textContent = `· ${e.kg.toFixed(1)} kg`), j.push(e), js(e.kg);
+async function ct(s) {
+  W && await W.stop(), W = s, s.onStatus(qe), s.onSample((e) => {
+    Fe = e.kg, G === "live" && (o("statusKg").textContent = `${e.kg.toFixed(1)} kg`), N.push(e), Ws(e.kg);
   });
   try {
-    await s.start(), c("btnTare").disabled = !1, c("btnStart").disabled = !1;
+    await s.start(), o("btnTare").disabled = !1, o("btnStart").disabled = !1;
   } catch (e) {
-    qe("error"), c("statusText").textContent = e.message, alert("Connect failed: " + e.message);
+    qe("error"), o("statusText").textContent = e.message, alert("Connect failed: " + e.message);
   }
 }
 let G = "idle";
-function Ht() {
+function Kt() {
   return localStorage.getItem("ufl.keepAwake") !== "0";
 }
-function Wt() {
+function Gt() {
   if (!A.isNativePlatform()) return;
-  (Ht() && (G === "live" || G === "scanning" || G === "lost") ? Et.keepAwake() : Et.allowSleep()).catch(() => {
+  (Kt() && (G === "live" || G === "scanning" || G === "lost") ? Lt.keepAwake() : Lt.allowSleep()).catch(() => {
   });
 }
 function qe(s) {
-  G = s, Wt(), c("statusDot").className = `dot ${s}`, c("statusPill").className = `pill ${s}`;
+  G = s, Gt(), o("statusDot").className = `dot ${s}`, o("statusPill").className = `pill ${s}`;
   const e = {
     idle: "Not connected",
-    scanning: "Listening for scale… turn it on / pull the hook",
-    live: `${N?.name ?? "Scale"} connected ✓`,
-    lost: "Signal lost — reconnecting…",
+    scanning: "Listening…",
+    live: "",
+    lost: "Lost — retrying…",
     error: "Error"
   };
-  c("statusText").textContent = e[s], s !== "live" && (c("statusKg").textContent = "");
-  const t = c("btnConnect");
+  o("statusText").textContent = e[s], s !== "live" && (o("statusKg").textContent = "");
+  const t = o("btnConnect");
   t.textContent = s === "live" || s === "scanning" ? "Disconnect" : "Connect scale";
 }
-function zt() {
+function Yt() {
   return localStorage.getItem("ufl.autoConnect") !== "0";
 }
-let Ue = !1, ct = !1, et = !1;
-function lt() {
-  if (!zt() || !A.isNativePlatform() || N instanceof xe || ee || ct || Ue && G === "error") return;
-  Ue = !0;
+let Ne = !1, lt = !1, et = !1;
+function ut() {
+  if (!Yt() || !A.isNativePlatform() || W instanceof xe || ee || lt || Ne && G === "error") return;
+  Ne = !0;
   const s = new xe();
-  s.onSeen = () => es(s), c("simPanel").classList.add("hidden"), ot(s);
+  s.onSeen = () => ns(s), o("simPanel").classList.add("hidden"), ct(s);
 }
-let Pt = 0;
-function js(s) {
-  if (!j.recording || !dt()) {
+let Dt = 0;
+function Ws(s) {
+  if (!N.recording || !ht()) {
     de = null;
     return;
   }
@@ -1539,54 +1548,54 @@ function js(s) {
     de = null;
     return;
   }
-  const t = Me(), n = s >= t.lo && s <= t.hi, i = c("phaseBanner");
-  n && de !== "in" && (de = "in", i.classList.add("inzone"), i.classList.remove("outzone"), k.say("in zone")), !n && de !== "out" && (de = "out", i.classList.add("outzone"), i.classList.remove("inzone"), s > 2 && k.say(s < t.lo ? "more" : "ease off"), Y && s > 2 && Date.now() - Pt > 1500 && (se.outZone(), Pt = Date.now()));
-}
-function Vs() {
-  const s = c("protocol").value, e = Ne(s, ut());
-  c("summary").classList.add("hidden"), j.start(), k.unlock(), zs(), X.opts.marks = [];
-  const t = e.phases.length ? Ft(e).reduce((n, i) => n + i.seconds, 0) : 60;
-  X.opts.windowS = Math.max(10, Math.ceil(t / 10) * 10), c("btnStart").classList.add("hidden"), c("btnStop").classList.remove("hidden"), Yt(!0), e.phases.length ? (te.onPhase = Hs, te.onTick = Ws, te.onDone = () => Kt(), te.start(e)) : (ht("work", "Free set — go", ""), k.say("Go", !0), Y && se.go());
-}
-function Hs(s, e, t) {
-  ht(s.cue, s.name, s.seconds.toFixed(0)), s.cue === "work" ? (Y && se.go(), k.say(s.name.replace(/\d+\/\d+/, ""), !0), X.opts.marks.push(j.elapsed())) : s.cue === "ramp" ? (Y && se.go(), k.say("Build up", !0)) : (e > 0 && Y && se.rest(), e > 0 && k.say(e === t - 1 ? "Done" : "Rest", !0));
-}
-let $t = -1;
-function Ws(s, e) {
-  c("phaseTime").textContent = s.toFixed(s < 10 ? 1 : 0);
-  const t = Math.ceil(s);
-  t !== $t && ($t = t, t <= 3 && t > 0 && Y && se.tick());
-}
-async function Kt() {
-  te.stop(), Gt();
-  const s = c("exercise").value, e = c("side").value, t = c("protocol").value, n = j.finish({ exercise: s, side: e, mode: t });
-  n && n.manualReps === void 0 && (n.reps?.length ?? 0) >= 2 && (n.manualReps = n.reps.length), c("btnStop").classList.add("hidden"), c("btnStart").classList.remove("hidden"), Yt(!1), ht("idle", "Done", "—"), Y && se.done(), n && (t === "maxtest" && n.peak > 0 && (await P.setMax(s, e, n.peak), k.say(`New max ${n.peak.toFixed(0)} kilos`, !0)), await P.saveSet(n), q.push(n), z()?.upsertForceSet(Ut(n)), await Ks(n), await R(), Z(), J());
+  const t = Me(), n = s >= t.lo && s <= t.hi, i = o("phaseBanner");
+  n && de !== "in" && (de = "in", i.classList.add("inzone"), i.classList.remove("outzone"), k.say("in zone")), !n && de !== "out" && (de = "out", i.classList.add("outzone"), i.classList.remove("inzone"), s > 2 && k.say(s < t.lo ? "more" : "ease off"), Y && s > 2 && Date.now() - Dt > 1500 && (se.outZone(), Dt = Date.now()));
 }
 function zs() {
-  Gt(), Ze = -1, Re = setInterval(() => {
-    if (!j.recording) return;
-    const s = Math.floor(j.elapsed());
+  const s = o("protocol").value, e = Ue(s, dt());
+  o("summary").classList.add("hidden"), N.start(), k.unlock(), Ys(), X.opts.marks = [];
+  const t = e.phases.length ? qt(e).reduce((n, i) => n + i.seconds, 0) : 60;
+  X.opts.windowS = Math.max(10, Math.ceil(t / 10) * 10), o("btnStart").classList.add("hidden"), o("btnStop").classList.remove("hidden"), Zt(!0), e.phases.length ? (te.onPhase = Ks, te.onTick = Gs, te.onDone = () => Xt(), te.start(e)) : (ft("work", "Free set — go", ""), k.say("Go", !0), Y && se.go());
+}
+function Ks(s, e, t) {
+  ft(s.cue, s.name, s.seconds.toFixed(0)), s.cue === "work" ? (Y && se.go(), k.say(s.name.replace(/\d+\/\d+/, ""), !0), X.opts.marks.push(N.elapsed())) : s.cue === "ramp" ? (Y && se.go(), k.say("Build up", !0)) : (e > 0 && Y && se.rest(), e > 0 && k.say(e === t - 1 ? "Done" : "Rest", !0));
+}
+let Ot = -1;
+function Gs(s, e) {
+  o("phaseTime").textContent = s.toFixed(s < 10 ? 1 : 0);
+  const t = Math.ceil(s);
+  t !== Ot && (Ot = t, t <= 3 && t > 0 && Y && se.tick());
+}
+async function Xt() {
+  te.stop(), Jt();
+  const s = o("exercise").value, e = o("side").value, t = o("protocol").value, n = N.finish({ exercise: s, side: e, mode: t });
+  n && n.manualReps === void 0 && (n.reps?.length ?? 0) >= 2 && (n.manualReps = n.reps.length), o("btnStop").classList.add("hidden"), o("btnStart").classList.remove("hidden"), Zt(!1), ft("idle", "Done", "—"), Y && se.done(), n && (t === "maxtest" && n.peak > 0 && (await P.setMax(s, e, n.peak), k.say(`New max ${n.peak.toFixed(0)} kilos`, !0)), await P.saveSet(n), q.push(n), z()?.upsertForceSet(jt(n)), await Xs(n), await R(), Z(), J());
+}
+function Ys() {
+  Jt(), Ze = -1, Re = setInterval(() => {
+    if (!N.recording) return;
+    const s = Math.floor(N.elapsed());
     if (s === Ze || s === 0) return;
     Ze = s;
     const e = te.running ? te.current() : null;
     if (e && e.cue !== "work") return;
-    const t = it && !dt() && s % _e === 0;
+    const t = it && !ht() && s % _e === 0;
     (at && Y || t && Y) && se.tick();
     const n = [];
-    rt && n.push(Ps(s)), t && n.push(Fe.toFixed(0)), n.length && (!t && k.speaking() || k.say(n.join(", "), t, !0));
+    rt && n.push(Os(s)), t && n.push(Fe.toFixed(0)), n.length && (!t && k.speaking() || k.say(n.join(", "), t, !0));
   }, 100);
 }
-function Gt() {
+function Jt() {
   Re && clearInterval(Re), Re = null;
 }
-function Yt(s) {
-  for (const e of ["exercise", "side", "protocol"]) c(e).disabled = s;
+function Zt(s) {
+  for (const e of ["exercise", "side", "protocol"]) o(e).disabled = s;
 }
-function ht(s, e, t) {
-  const n = c("phaseBanner");
-  n.className = `banner ${s}`, c("phaseName").textContent = e, c("phaseTime").textContent = t;
+function ft(s, e, t) {
+  const n = o("phaseBanner");
+  n.className = `banner ${s}`, o("phaseName").textContent = e, o("phaseTime").textContent = t;
 }
-async function Ks(s) {
+async function Xs(s) {
   const e = Be, t = await P.maxes(), n = s.side === "left" ? "right" : s.side === "right" ? "left" : null, i = [];
   i.push(O("Duration", `${s.durationS.toFixed(1)} s`)), i.push(O("Peak force", `${C(s.peak)} kg`, ke(s.peak, e?.peak))), i.push(O("Intensity (avg)", `${C(s.avg)} kg`, ke(s.avg, e?.avg))), i.push(O("Output (kg·s)", C(s.output), ke(s.output, e?.output))), i.push(O("Inroad", `${s.inroad.toFixed(0)}%`, s.inroad >= 30 ? '<span class="badge good">deep fatigue</span>' : s.inroad >= 15 ? '<span class="badge">moderate</span>' : '<span class="badge warn">shallow — stopped early?</span>')), re && i.push(O("vs. best output", `${(s.output / re * 100).toFixed(0)}%`, s.output > re ? '<span class="badge good">new best</span>' : "")), K && i.push(O("Peak as % of max", `${(s.peak / K * 100).toFixed(0)}%`));
   let a = "";
@@ -1594,24 +1603,24 @@ async function Ks(s) {
     const r = Math.max(...s.reps.map((d) => d.peak));
     a = `<div class="muted" style="margin-top:8px">Reps: ${s.reps.length} · first ${C(s.reps[0].peak)} → last ${C(s.reps[s.reps.length - 1].peak)} kg · avg rep ${(s.reps.reduce((d, h) => d + h.durationS, 0) / s.reps.length).toFixed(1)} s</div>
       <div class="repbars">${s.reps.map((d) => `<div style="height:${Math.max(4, d.peak / r * 100)}%"><span>${d.peak.toFixed(0)}</span></div>`).join("")}</div>`;
-    const u = s.mode === "critical" ? xs(s.reps) : null;
+    const u = s.mode === "critical" ? Es(s.reps) : null;
     u && (a += O("Critical force", `${C(u)} kg${K ? ` (${(u / K * 100).toFixed(0)}% of max)` : ""}`));
   }
-  let o = "";
+  let c = "";
   if (n) {
     const r = t[`${s.exercise}|${s.side}`]?.kg, u = t[`${s.exercise}|${n}`]?.kg;
     if (r && u) {
       const d = (Math.abs(r - u) / Math.max(r, u) * 100).toFixed(0);
-      o = O("Left/right gap", `${d}% (L ${C(s.side === "left" ? r : u)} / R ${C(s.side === "left" ? u : r)})`, Number(d) > 10 ? '<span class="badge warn">asymmetry</span>' : '<span class="badge good">balanced</span>');
+      c = O("Left/right gap", `${d}% (L ${C(s.side === "left" ? r : u)} / R ${C(s.side === "left" ? u : r)})`, Number(d) > 10 ? '<span class="badge warn">asymmetry</span>' : '<span class="badge good">balanced</span>');
     }
   }
-  const l = c("summary");
-  l.innerHTML = `<h4>${T(s.exercise)} · ${s.side} · ${s.mode}</h4>${i.join("")}${o}${a}
-    ${Xt(s, "sum")}`, l.classList.remove("hidden"), Jt(s, "sum", async () => {
+  const l = o("summary");
+  l.innerHTML = `<h4>${T(s.exercise)} · ${s.side} · ${s.mode}</h4>${i.join("")}${c}${a}
+    ${Qt(s, "sum")}`, l.classList.remove("hidden"), es(s, "sum", async () => {
     await R(), Z();
   });
 }
-function Xt(s, e) {
+function Qt(s, e) {
   const t = Ee(le(s));
   return `<div class="editor">
       <label>Reps <input type="number" id="${e}Reps" min="1" step="1" inputmode="numeric" placeholder="1" value="${s.manualReps ?? ""}" /></label>
@@ -1621,21 +1630,21 @@ function Xt(s, e) {
       <span class="muted" id="${e}Msg">${s.reps?.length ? `auto-detected ${s.reps.length} — change it if that's wrong` : "blank reps = 1"}</span>
     </div>`;
 }
-function Jt(s, e, t) {
+function es(s, e, t) {
   const n = async () => {
-    const i = Number(c(`${e}Reps`).value);
+    const i = Number(o(`${e}Reps`).value);
     s.manualReps = i > 0 ? Math.round(i) : void 0;
-    const a = c(`${e}Date`).value;
+    const a = o(`${e}Date`).value;
     if (a) {
       const [l, r, u] = a.split("-").map(Number), d = new Date(s.startedAt);
       s.performedAt = new Date(l, r - 1, u, d.getHours(), d.getMinutes(), d.getSeconds()).getTime();
     }
-    s.note = c(`${e}Note`).value.trim() || void 0, await P.updateSet(s), z()?.upsertForceSet(Ut(s));
-    const o = q.findIndex((l) => l.id === s.id);
-    o >= 0 && (q[o] = s), c(`${e}Msg`).textContent = `saved · ${fe(s)} rep${fe(s) === 1 ? "" : "s"} · ${Ee(le(s))}`, await t();
+    s.note = o(`${e}Note`).value.trim() || void 0, await P.updateSet(s), z()?.upsertForceSet(jt(s));
+    const c = q.findIndex((l) => l.id === s.id);
+    c >= 0 && (q[c] = s), o(`${e}Msg`).textContent = `saved · ${fe(s)} rep${fe(s) === 1 ? "" : "s"} · ${Ee(le(s))}`, await t();
   };
-  c(`${e}Save`).onclick = n;
-  for (const i of [`${e}Reps`, `${e}Date`, `${e}Note`]) c(i).onkeydown = (a) => {
+  o(`${e}Save`).onclick = n;
+  for (const i of [`${e}Reps`, `${e}Date`, `${e}Note`]) o(i).onkeydown = (a) => {
     a.key === "Enter" && n();
   };
 }
@@ -1647,37 +1656,37 @@ function ke(s, e) {
   const t = (s - e) / e * 100;
   return `<span class="${t >= 0 ? "fl-d up" : "fl-d down"}">${t >= 0 ? "+" : ""}${t.toFixed(1)}%</span>`;
 }
-function Zt() {
-  const s = j.current(), e = j.elapsed();
-  if (c("liveKg").textContent = Fe.toFixed(1), c("elapsed").textContent = ts(e), X.draw(s, e, Fe), j.recording && s.length > 2) {
-    const t = Rt(s);
-    c("sPeak").textContent = C(t.peak), c("sAvg").textContent = C(t.avg), c("sOut").textContent = C(t.output), c("sInroad").textContent = `${t.inroad.toFixed(0)}%`;
+function ts() {
+  const s = N.current(), e = N.elapsed();
+  if (o("liveKg").textContent = Fe.toFixed(1), o("elapsed").textContent = is(e), X.draw(s, e, Fe), N.recording && s.length > 2) {
+    const t = It(s);
+    o("sPeak").textContent = C(t.peak), o("sAvg").textContent = C(t.avg), o("sOut").textContent = C(t.output), o("sInroad").textContent = `${t.inroad.toFixed(0)}%`;
     const n = Be;
-    c("dPeak").innerHTML = ke(t.peak, n?.peak), c("dAvg").innerHTML = ke(t.avg, n?.avg), c("dOut").innerHTML = re ? `<span class="muted">${(t.output / re * 100).toFixed(0)}% of goal</span>` : "";
-    const i = Mt(s);
-    c("sReps").textContent = i.length ? String(i.length) : "–", c("dReps").textContent = i.length ? `last ${i[i.length - 1].peak.toFixed(0)} kg` : "";
+    o("dPeak").innerHTML = ke(t.peak, n?.peak), o("dAvg").innerHTML = ke(t.avg, n?.avg), o("dOut").innerHTML = re ? `<span class="muted">${(t.output / re * 100).toFixed(0)}% of goal</span>` : "";
+    const i = Ft(s);
+    o("sReps").textContent = i.length ? String(i.length) : "–", o("dReps").textContent = i.length ? `last ${i[i.length - 1].peak.toFixed(0)} kg` : "";
   }
-  requestAnimationFrame(Zt);
+  requestAnimationFrame(ts);
 }
 let we = null;
 function Z() {
-  const s = c("histExercise").value, e = q.filter((t) => !s || t.exercise === s).slice().sort((t, n) => le(n) - le(t) || n.startedAt - t.startedAt);
-  c("histBody").innerHTML = e.map((t) => `<tr data-id="${t.id}" class="${we?.id === t.id ? "sel" : ""}">
+  const s = o("histExercise").value, e = q.filter((t) => !s || t.exercise === s).slice().sort((t, n) => le(n) - le(t) || n.startedAt - t.startedAt);
+  o("histBody").innerHTML = e.map((t) => `<tr data-id="${t.id}" class="${we?.id === t.id ? "sel" : ""}">
       <td>${new Date(le(t)).toLocaleDateString(void 0, { month: "short", day: "numeric" })}</td>
       <td>${T(t.exercise)}${t.side !== "both" ? ` <small class="muted">${t.side[0].toUpperCase()}</small>` : ""}</td>
-      <td>${t.mode}</td><td>${fe(t)}</td><td>${ts(t.durationS)}</td><td>${C(t.peak)}</td><td>${C(t.avg)}</td><td>${C(t.output)}</td><td>${t.inroad.toFixed(0)}%</td>
-      <td><button data-del="${t.id}">✕</button></td></tr>`).join("") || '<tr><td colspan="10" class="muted">No sets yet.</td></tr>', c("histBody").querySelectorAll("tr[data-id]").forEach((t) => {
+      <td>${t.mode}</td><td>${fe(t)}</td><td>${is(t.durationS)}</td><td>${C(t.peak)}</td><td>${C(t.avg)}</td><td>${C(t.output)}</td><td>${t.inroad.toFixed(0)}%</td>
+      <td><button data-del="${t.id}">✕</button></td></tr>`).join("") || '<tr><td colspan="10" class="muted">No sets yet.</td></tr>', o("histBody").querySelectorAll("tr[data-id]").forEach((t) => {
     t.onclick = (n) => {
-      n.target.dataset.del || (we = q.find((i) => i.id === t.dataset.id) ?? null, Z(), Gs());
+      n.target.dataset.del || (we = q.find((i) => i.id === t.dataset.id) ?? null, Z(), Js());
     };
-  }), c("histBody").querySelectorAll("button[data-del]").forEach((t) => {
+  }), o("histBody").querySelectorAll("button[data-del]").forEach((t) => {
     t.onclick = async () => {
       confirm("Delete this set?") && (await P.deleteSet(t.dataset.del), z()?.removeForceSet(`fl-${t.dataset.del}`), q = q.filter((n) => n.id !== t.dataset.del), we?.id === t.dataset.del && (we = null), Z(), await R());
     };
-  }), Ys(s ? e.slice().reverse() : []);
+  }), Zs(s ? e.slice().reverse() : []);
 }
-function Gs() {
-  const s = we, e = c("histDetail");
+function Js() {
+  const s = we, e = o("histDetail");
   if (!s) {
     e.classList.add("hidden");
     return;
@@ -1687,17 +1696,17 @@ function Gs() {
     ${O("Peak", `${C(s.peak)} kg`)}${O("Intensity", `${C(s.avg)} kg`)}${O("Output", C(s.output))}${O("Inroad", `${s.inroad.toFixed(0)}%`)}
     ${O("Reps (logged)", String(fe(s)))}
     ${s.reps?.length ? O("Auto-detected", `${s.reps.length} (${s.reps.map((n) => n.peak.toFixed(0)).join(", ")} kg)`) : ""}
-    ${Xt(s, "hist")}
-    <div class="actions-inline" style="margin-top:8px"><button class="sm" id="btnUseGhost">Use as ghost trace</button><button class="sm ghost" id="btnSetCsv">Export samples CSV</button></div>`, Jt(s, "hist", async () => {
+    ${Qt(s, "hist")}
+    <div class="actions-inline" style="margin-top:8px"><button class="sm" id="btnUseGhost">Use as ghost trace</button><button class="sm ghost" id="btnSetCsv">Export samples CSV</button></div>`, es(s, "hist", async () => {
     Z(), await R();
   });
-  const t = new It(c("histCanvas"));
-  t.opts.windowS = Math.max(10, Math.ceil(s.durationS / 10) * 10), t.opts.marks = s.reps?.map((n) => n.startS) ?? [], t.draw(s.samples, s.durationS, 0), c("btnUseGhost").onclick = () => {
-    Se = !0, localStorage.setItem("ufl.ghostOn", "1"), c("ghostOn").checked = !0, X.opts.ghost = s.samples, Qt("train");
-  }, c("btnSetCsv").onclick = () => nt(`set-${s.id}.csv`, Ms(s), "text/csv");
+  const t = new Bt(o("histCanvas"));
+  t.opts.windowS = Math.max(10, Math.ceil(s.durationS / 10) * 10), t.opts.marks = s.reps?.map((n) => n.startS) ?? [], t.draw(s.samples, s.durationS, 0), o("btnUseGhost").onclick = () => {
+    Se = !0, localStorage.setItem("ufl.ghostOn", "1"), o("ghostOn").checked = !0, X.opts.ghost = s.samples, ss("train");
+  }, o("btnSetCsv").onclick = () => nt(`set-${s.id}.csv`, Bs(s), "text/csv");
 }
-function Ys(s) {
-  const e = c("progress");
+function Zs(s) {
+  const e = o("progress");
   if (s.length < 2) {
     e.classList.add("hidden");
     return;
@@ -1707,30 +1716,30 @@ function Ys(s) {
   ve.width = n * t, ve.height = i * t, ve.style.width = `${n}px`, ve.style.height = `${i}px`;
   const a = ve.getContext("2d");
   a.setTransform(t, 0, 0, t, 0, 0), a.clearRect(0, 0, n, i);
-  const o = getComputedStyle(document.getElementById("view-force") ?? document.documentElement), l = 36, r = 8, u = 10, d = 18, h = n - l - r, f = i - u - d, p = Math.max(10, ...s.map((x) => x.peak)) * 1.1, v = (x) => l + x / Math.max(1, s.length - 1) * h, y = (x) => u + f - x / p * f;
-  a.strokeStyle = o.getPropertyValue("--grid"), a.fillStyle = o.getPropertyValue("--muted"), a.font = "10px system-ui", a.textAlign = "right";
+  const c = getComputedStyle(document.getElementById("view-force") ?? document.documentElement), l = 36, r = 8, u = 10, d = 18, h = n - l - r, f = i - u - d, p = Math.max(10, ...s.map((x) => x.peak)) * 1.1, v = (x) => l + x / Math.max(1, s.length - 1) * h, y = (x) => u + f - x / p * f;
+  a.strokeStyle = c.getPropertyValue("--grid"), a.fillStyle = c.getPropertyValue("--muted"), a.font = "10px system-ui", a.textAlign = "right";
   for (let x = 0; x <= 4; x++) {
-    const V = p / 4 * x;
-    a.beginPath(), a.moveTo(l, y(V)), a.lineTo(n - r, y(V)), a.stroke(), a.fillText(V.toFixed(0), l - 4, y(V) + 3);
+    const j = p / 4 * x;
+    a.beginPath(), a.moveTo(l, y(j)), a.lineTo(n - r, y(j)), a.stroke(), a.fillText(j.toFixed(0), l - 4, y(j) + 3);
   }
-  const b = [["peak", o.getPropertyValue("--accent")], ["avg", o.getPropertyValue("--accent2")]];
-  for (const [x, V] of b)
-    a.strokeStyle = V, a.lineWidth = 2, a.beginPath(), s.forEach((M, U) => U ? a.lineTo(v(U), y(M[x])) : a.moveTo(v(U), y(M[x]))), a.stroke(), a.fillStyle = V, s.forEach((M, U) => {
+  const b = [["peak", c.getPropertyValue("--accent")], ["avg", c.getPropertyValue("--accent2")]];
+  for (const [x, j] of b)
+    a.strokeStyle = j, a.lineWidth = 2, a.beginPath(), s.forEach((M, U) => U ? a.lineTo(v(U), y(M[x])) : a.moveTo(v(U), y(M[x]))), a.stroke(), a.fillStyle = j, s.forEach((M, U) => {
       a.beginPath(), a.arc(v(U), y(M[x]), 3, 0, Math.PI * 2), a.fill();
     });
-  a.fillStyle = o.getPropertyValue("--muted"), a.textAlign = "left", a.fillText("peak", l + 4, u + 10), a.fillStyle = o.getPropertyValue("--accent2"), a.fillText("intensity", l + 36, u + 10);
+  a.fillStyle = c.getPropertyValue("--muted"), a.textAlign = "left", a.fillText("peak", l + 4, u + 10), a.fillStyle = c.getPropertyValue("--accent2"), a.fillText("intensity", l + 36, u + 10);
 }
 async function J() {
   const s = await P.maxes(), e = Object.entries(s).map(([t, n]) => {
     const [i, a] = t.split("|");
     return `<tr><td>${T(i)}</td><td>${a}</td><td>${C(n.kg)}</td><td>${new Date(n.at).toLocaleDateString()}</td><td><button data-mdel="${T(t)}">✕</button></td></tr>`;
   });
-  c("maxBody").innerHTML = e.join("") || '<tr><td colspan="5" class="muted">No maxes yet.</td></tr>', c("maxBody").querySelectorAll("button[data-mdel]").forEach((t) => t.onclick = async () => {
+  o("maxBody").innerHTML = e.join("") || '<tr><td colspan="5" class="muted">No maxes yet.</td></tr>', o("maxBody").querySelectorAll("button[data-mdel]").forEach((t) => t.onclick = async () => {
     await P.deleteMax(t.dataset.mdel), J(), R();
-  }), c("exList").innerHTML = w.map((t) => `<span>${T(t)}<button data-xren="${T(t)}" title="Rename">✎</button><button data-xdel="${T(t)}">✕</button></span>`).join(""), c("exList").querySelectorAll("button[data-xren]").forEach((t) => t.onclick = async () => {
+  }), o("exList").innerHTML = w.map((t) => `<span>${T(t)}<button data-xren="${T(t)}" title="Rename">✎</button><button data-xdel="${T(t)}">✕</button></span>`).join(""), o("exList").querySelectorAll("button[data-xren]").forEach((t) => t.onclick = async () => {
     const n = t.dataset.xren, i = prompt(`Rename "${n}" to:`, n);
-    !i || i.trim() === n || await Us(n, i.trim());
-  }), c("exList").querySelectorAll("button[data-xdel]").forEach((t) => t.onclick = async () => {
+    !i || i.trim() === n || await Vs(n, i.trim());
+  }), o("exList").querySelectorAll("button[data-xdel]").forEach((t) => t.onclick = async () => {
     const n = z();
     if (n) {
       if (!n.removeExercise(t.dataset.xdel)) {
@@ -1743,43 +1752,47 @@ async function J() {
     oe(), J();
   });
 }
-function Qt(s) {
+function ss(s) {
   document.querySelectorAll(".fl-tabs button").forEach((e) => e.classList.toggle("active", e.dataset.tab === s)), document.querySelectorAll(".fl-tab").forEach((e) => e.classList.toggle("active", e.id === `tab-${s}`)), s === "train" && X.resize(), s === "history" && Z();
 }
-function Xs() {
-  document.querySelectorAll(".fl-tabs button").forEach((r) => r.onclick = () => Qt(r.dataset.tab)), c("btnConnect").onclick = async () => {
-    if (N instanceof xe && (G === "live" || G === "scanning")) {
-      await N.stop(), N = null, qe("idle"), ct = !0;
+function Qs() {
+  document.querySelectorAll(".fl-tabs button").forEach((r) => r.onclick = () => ss(r.dataset.tab)), o("hdrExercise").onclick = () => {
+    N.recording || Us(o("exercise"));
+  };
+  for (const r of ["exercise", "side", "protocol"]) o(r).addEventListener("change", ot);
+  ot(), o("btnConnect").onclick = async () => {
+    if (W instanceof xe && (G === "live" || G === "scanning")) {
+      await W.stop(), W = null, qe("idle"), lt = !0;
       return;
     }
-    ct = !1, c("simPanel").classList.add("hidden"), ee = null;
+    lt = !1, o("simPanel").classList.add("hidden"), ee = null;
     const r = new xe();
-    r.onSeen = () => es(r), ot(r);
-  }, c("btnSim").onclick = () => {
-    ee = new ys(), ee.exact = c("simExact").checked, c("simPanel").classList.remove("hidden"), ot(ee);
-  }, c("simExact").onchange = (r) => {
+    r.onSeen = () => ns(r), ct(r);
+  }, o("btnSim").onclick = () => {
+    ee = new Ss(), ee.exact = o("simExact").checked, o("simPanel").classList.remove("hidden"), ct(ee);
+  }, o("simExact").onchange = (r) => {
     const u = r.target.checked;
-    ee && (ee.exact = u), c("simHelp").textContent = u ? "Reading tracks the slider exactly." : 'Slide up to "push", back to 0 to rest. Fatigue is simulated.';
-  }, c("btnTare").onclick = () => N?.tare(), c("btnStart").onclick = Vs, c("camOn").checked = localStorage.getItem("ufl.camOn") === "1";
+    ee && (ee.exact = u), o("simHelp").textContent = u ? "Reading tracks the slider exactly." : 'Slide up to "push", back to 0 to rest. Fatigue is simulated.';
+  }, o("btnTare").onclick = () => W?.tare(), o("btnStart").onclick = zs, o("camOn").checked = localStorage.getItem("ufl.camOn") === "1";
   const s = async () => {
-    const r = c("camOn").checked;
+    const r = o("camOn").checked;
     if (localStorage.setItem("ufl.camOn", r ? "1" : "0"), r) {
       if (!navigator.mediaDevices?.getUserMedia) {
-        alert("Camera not available here."), c("camOn").checked = !1;
+        alert("Camera not available here."), o("camOn").checked = !1;
         return;
       }
-      Ae ?? (Ae = new Is(c("camVideo")));
+      Ae ?? (Ae = new qs(o("camVideo")));
       try {
-        await Ae.start(), c("camPip").classList.remove("hidden"), c("btnCamFlip").classList.remove("hidden");
+        await Ae.start(), o("camPip").classList.remove("hidden"), o("btnCamFlip").classList.remove("hidden");
       } catch (u) {
         alert("Camera failed: " + u.message + `
-Allow the Camera permission for UY Force Lab in Android settings.`), c("camOn").checked = !1;
+Allow the Camera permission for UY Force Lab in Android settings.`), o("camOn").checked = !1;
       }
     } else
-      Ae?.stop(), c("camPip").classList.add("hidden"), c("btnCamFlip").classList.add("hidden");
+      Ae?.stop(), o("camPip").classList.add("hidden"), o("btnCamFlip").classList.add("hidden");
   };
-  c("camOn").onchange = s, c("camOn").checked && s(), c("btnCamFlip").onclick = () => Ae?.flip();
-  const e = c("camPip"), t = localStorage.getItem("ufl.pipPos");
+  o("camOn").onchange = s, o("camOn").checked && s(), o("btnCamFlip").onclick = () => Ae?.flip();
+  const e = o("camPip"), t = localStorage.getItem("ufl.pipPos");
   if (t) {
     const [r, u] = t.split(",").map(Number);
     e.style.left = `${r}px`, e.style.top = `${u}px`;
@@ -1802,116 +1815,116 @@ Allow the Camera permission for UY Force Lab in Android settings.`), c("camOn").
       } else e.classList.toggle("large");
       n = null;
     }
-  }, c("btnStop").onclick = Kt, c("simEffort").oninput = (r) => {
+  }, o("btnStop").onclick = Xt, o("simEffort").oninput = (r) => {
     const u = Number(r.target.value);
-    ee && (ee.effort = u), c("simVal").textContent = String(u);
-  }, c("exercise").onchange = R, Je(c("exercise"), { recent: Qe, all: () => w, onCreate: Ct }), Je(c("maxExercise"), { recent: Qe, all: () => w, onCreate: Ct }), Je(c("histExercise"), { recent: Qe, all: () => w, allOption: { value: "", label: "All exercises" } }), c("btnNewEx").onclick = () => {
-    c("newExBox").classList.remove("hidden"), c("newExName").focus();
-  }, c("btnNewExCancel").onclick = () => {
-    c("newExBox").classList.add("hidden"), c("newExName").value = "";
+    ee && (ee.effort = u), o("simVal").textContent = String(u);
+  }, o("exercise").onchange = R, Je(o("exercise"), { recent: Qe, all: () => w, onCreate: $t }), Je(o("maxExercise"), { recent: Qe, all: () => w, onCreate: $t }), Je(o("histExercise"), { recent: Qe, all: () => w, allOption: { value: "", label: "All exercises" } }), o("btnNewEx").onclick = () => {
+    o("newExBox").classList.remove("hidden"), o("newExName").focus();
+  }, o("btnNewExCancel").onclick = () => {
+    o("newExBox").classList.add("hidden"), o("newExName").value = "";
   };
   const i = async () => {
-    const r = c("newExName").value.trim();
+    const r = o("newExName").value.trim();
     if (r) {
       if (!w.includes(r)) {
         const u = z();
         u ? (u.addExercise(r), w = u.exerciseNames()) : (w.push(r), await P.saveExercises(w));
       }
-      oe(), c("exercise").value = r, c("newExBox").classList.add("hidden"), c("newExName").value = "", J(), await R();
+      oe(), o("exercise").value = r, o("newExBox").classList.add("hidden"), o("newExName").value = "", J(), await R();
     }
   };
-  c("btnNewExSave").onclick = i, c("newExName").onkeydown = (r) => {
+  o("btnNewExSave").onclick = i, o("newExName").onkeydown = (r) => {
     r.key === "Enter" && i();
-  }, c("side").onchange = R, c("protocol").onchange = () => Vt(), c("params").oninput = () => c("protocolHelp").textContent = Ne(c("protocol").value, ut()).describe;
-  for (const r of ["zoneOn", "zoneLo", "zoneHi"]) c(r).oninput = R;
-  c("ghostOn").checked = Se, c("ghostOn").onchange = (r) => {
+  }, o("side").onchange = R, o("protocol").onchange = () => zt(), o("params").oninput = () => o("protocolHelp").textContent = Ue(o("protocol").value, dt()).describe;
+  for (const r of ["zoneOn", "zoneLo", "zoneHi"]) o(r).oninput = R;
+  o("ghostOn").checked = Se, o("ghostOn").onchange = (r) => {
     Se = r.target.checked, localStorage.setItem("ufl.ghostOn", Se ? "1" : "0"), R();
-  }, c("histExercise").onchange = Z, c("btnCsv").onclick = () => nt(`uy-force-lab-${Ot()}.csv`, Rs(q), "text/csv"), c("btnJson").onclick = () => nt(`uy-force-lab-${Ot()}.json`, JSON.stringify(q, null, 1), "application/json"), c("voiceOn").onchange = (r) => k.enabled = r.target.checked, c("keepAwake").checked = Ht(), c("keepAwake").onchange = (r) => {
-    localStorage.setItem("ufl.keepAwake", r.target.checked ? "1" : "0"), Wt();
-  }, c("autoConnect").checked = zt(), c("autoConnect").onchange = (r) => {
-    localStorage.setItem("ufl.autoConnect", r.target.checked ? "1" : "0"), Ue = !1, lt();
+  }, o("histExercise").onchange = Z, o("btnCsv").onclick = () => nt(`uy-force-lab-${Tt()}.csv`, Fs(q), "text/csv"), o("btnJson").onclick = () => nt(`uy-force-lab-${Tt()}.json`, JSON.stringify(q, null, 1), "application/json"), o("voiceOn").onchange = (r) => k.enabled = r.target.checked, o("keepAwake").checked = Kt(), o("keepAwake").onchange = (r) => {
+    localStorage.setItem("ufl.keepAwake", r.target.checked ? "1" : "0"), Gt();
+  }, o("autoConnect").checked = Yt(), o("autoConnect").onchange = (r) => {
+    localStorage.setItem("ufl.autoConnect", r.target.checked ? "1" : "0"), Ne = !1, ut();
   }, document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "hidden") {
-      N instanceof xe && !j.recording && (await N.stop(), N = null, qe("idle"), et = !0);
+      W instanceof xe && !N.recording && (await W.stop(), W = null, qe("idle"), et = !0);
       return;
     }
-    (et || G === "idle" || G === "error") && (et = !1, Ue = !1, lt());
+    (et || G === "idle" || G === "error") && (et = !1, Ne = !1, ut());
   }), k.rate = Number(pe("ufl.voiceRate", "1.2")) || 1.2, k.pitch = Number(pe("ufl.voicePitch", "1")) || 1;
   const a = (r, u, d, h) => {
-    const f = c(r);
-    f.value = String(h), c(r + "Val").textContent = h.toFixed(1) + "×", f.oninput = () => {
+    const f = o(r);
+    f.value = String(h), o(r + "Val").textContent = h.toFixed(1) + "×", f.oninput = () => {
       const p = Number(f.value);
-      d(p), localStorage.setItem(u, String(p)), c(r + "Val").textContent = p.toFixed(1) + "×";
+      d(p), localStorage.setItem(u, String(p)), o(r + "Val").textContent = p.toFixed(1) + "×";
     };
   };
-  a("voiceRate", "ufl.voiceRate", (r) => k.rate = r, k.rate), a("voicePitch", "ufl.voicePitch", (r) => k.pitch = r, k.pitch), c("beepOn").onchange = (r) => Y = r.target.checked, c("calloutEvery").value = String(_e), c("calloutEvery").onchange = (r) => {
+  a("voiceRate", "ufl.voiceRate", (r) => k.rate = r, k.rate), a("voicePitch", "ufl.voicePitch", (r) => k.pitch = r, k.pitch), o("beepOn").onchange = (r) => Y = r.target.checked, o("calloutEvery").value = String(_e), o("calloutEvery").onchange = (r) => {
     _e = Math.max(1, Number(r.target.value) || 1), localStorage.setItem("ufl.calloutEvery", String(_e));
   };
-  const o = (r, u, d, h) => {
-    const f = c(r);
+  const c = (r, u, d, h) => {
+    const f = o(r);
     f.checked = h, f.onchange = () => {
       d(f.checked), localStorage.setItem(u, f.checked ? "1" : "0");
     };
   };
-  o("calloutOn", "ufl.calloutOn", (r) => it = r, it), o("secBeep", "ufl.secBeep", (r) => at = r, at), o("secCount", "ufl.secCount", (r) => rt = r, rt);
+  c("calloutOn", "ufl.calloutOn", (r) => it = r, it), c("secBeep", "ufl.secBeep", (r) => at = r, at), c("secCount", "ufl.secCount", (r) => rt = r, rt);
   let l = null;
   k.onSpeak = (r) => {
-    const u = c("said");
+    const u = o("said");
     u.textContent = `🔊 ${r}`, u.classList.add("on"), l && clearTimeout(l), l = setTimeout(() => u.classList.remove("on"), 900);
   }, document.addEventListener("pointerdown", () => k.unlock(), { once: !0 }), document.addEventListener("visibilitychange", () => {
     document.visibilityState === "visible" && k.reset();
-  }), c("btnTestVoice").onclick = async () => {
+  }), o("btnTestVoice").onclick = async () => {
     k.reset();
-    const r = c("voiceStatus");
+    const r = o("voiceStatus");
     r.textContent = await k.status(), k.say("Force lab voice check, 1, 2, 3", !0);
-  }, c("btnSetMax").onclick = async () => {
-    const r = Number(c("maxKg").value);
-    r && (await P.setMax(c("maxExercise").value, c("maxSide").value, r), c("maxKg").value = "", J(), R());
-  }, c("btnAddEx").onclick = async () => {
-    const r = c("newEx").value.trim();
+  }, o("btnSetMax").onclick = async () => {
+    const r = Number(o("maxKg").value);
+    r && (await P.setMax(o("maxExercise").value, o("maxSide").value, r), o("maxKg").value = "", J(), R());
+  }, o("btnAddEx").onclick = async () => {
+    const r = o("newEx").value.trim();
     if (!(!r || w.includes(r))) {
       {
         const u = z();
         u ? (u.addExercise(r), w = u.exerciseNames()) : (w.push(r), await P.saveExercises(w));
       }
-      c("newEx").value = "", oe(), J();
+      o("newEx").value = "", oe(), J();
     }
   };
 }
-let Dt = 0;
-function es(s) {
+let At = 0;
+function ns(s) {
   const e = Date.now();
-  if (e - Dt < 1e3 || c("tab-settings").classList.contains("active") === !1) return;
-  Dt = e;
+  if (e - At < 1e3 || o("tab-settings").classList.contains("active") === !1) return;
+  At = e;
   const t = [...s.seen.values()].sort((n, i) => i.t - n.t).slice(0, 12);
-  c("seenBody").innerHTML = t.map((n) => `<tr><td>${T(n.name || "(no name)")}<br><small class="muted">${T(n.id)}</small></td><td>${n.rssi}</td><td>${T(n.keys || "–")}</td><td style="white-space:normal;font-family:monospace;font-size:11px">${T(n.hex || "–")}</td><td>${n.kg === null ? "–" : n.kg.toFixed(2)}</td></tr>`).join("") || '<tr><td colspan="5" class="muted">Listening… nothing heard yet.</td></tr>';
+  o("seenBody").innerHTML = t.map((n) => `<tr><td>${T(n.name || "(no name)")}<br><small class="muted">${T(n.id)}</small></td><td>${n.rssi}</td><td>${T(n.keys || "–")}</td><td style="white-space:normal;font-family:monospace;font-size:11px">${T(n.hex || "–")}</td><td>${n.kg === null ? "–" : n.kg.toFixed(2)}</td></tr>`).join("") || '<tr><td colspan="5" class="muted">Listening… nothing heard yet.</td></tr>';
 }
 function C(s) {
   return s >= 100 ? s.toFixed(0) : s.toFixed(1);
 }
-function ts(s) {
+function is(s) {
   const e = Math.floor(s / 60), t = Math.floor(s % 60);
   return `${e}:${t.toString().padStart(2, "0")}`;
 }
-function Ot() {
+function Tt() {
   return (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
 }
 function T(s) {
   return s.replace(/[&<>"]/g, (e) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[e]);
 }
-Ns();
+Hs();
 window.ForceLab = {
   onShow() {
-    X.resize(), lt();
+    X.resize(), ut();
   },
   // called by the host after it renamed an exercise in its own data
   renameExercise(s, e) {
-    Nt(s, e).then(async () => {
+    Ht(s, e).then(async () => {
       w = z()?.exerciseNames() ?? w, oe(), J(), Z(), await R();
     });
   }
 };
-async function Js(s, e, t) {
+async function en(s, e, t) {
   let n;
   return Promise.race([
     s,
@@ -1920,7 +1933,7 @@ async function Js(s, e, t) {
     })
   ]).finally(() => clearTimeout(n));
 }
-class Zs extends ie {
+class tn extends ie {
   constructor() {
     super(...arguments), this.deviceMap = /* @__PURE__ */ new Map(), this.discoveredDevices = /* @__PURE__ */ new Map(), this.scan = null, this.DEFAULT_CONNECTION_TIMEOUT = 1e4, this.onAdvertisementReceivedCallback = this.onAdvertisementReceived.bind(this), this.onDisconnectedCallback = this.onDisconnected.bind(this), this.onCharacteristicValueChangedCallback = this.onCharacteristicValueChanged.bind(this);
   }
@@ -1981,17 +1994,17 @@ class Zs extends ie {
     var t, n, i;
     const a = e.device.id;
     this.deviceMap.set(a, e.device);
-    const o = !this.discoveredDevices.has(a);
-    if (!(!((t = this.requestBleDeviceOptions) === null || t === void 0) && t.serviceData && !this.matchesServiceDataFilter(e)) && (o || !((n = this.requestBleDeviceOptions) === null || n === void 0) && n.allowDuplicates)) {
+    const c = !this.discoveredDevices.has(a);
+    if (!(!((t = this.requestBleDeviceOptions) === null || t === void 0) && t.serviceData && !this.matchesServiceDataFilter(e)) && (c || !((n = this.requestBleDeviceOptions) === null || n === void 0) && n.allowDuplicates)) {
       this.discoveredDevices.set(a, !0);
       const l = this.getBleDevice(e.device), r = {
         device: l,
         localName: l.name,
         rssi: e.rssi,
         txPower: e.txPower,
-        manufacturerData: yt(e.manufacturerData),
-        serviceData: yt(e.serviceData),
-        uuids: (i = e.uuids) === null || i === void 0 ? void 0 : i.map(ps)
+        manufacturerData: bt(e.manufacturerData),
+        serviceData: bt(e.serviceData),
+        uuids: (i = e.uuids) === null || i === void 0 ? void 0 : i.map(vs)
       };
       this.notifyListeners("onScanResult", r);
     }
@@ -2020,10 +2033,10 @@ class Zs extends ie {
     if (i.gatt === void 0)
       throw new Error("No gatt server available.");
     try {
-      const o = (t = e.timeout) !== null && t !== void 0 ? t : this.DEFAULT_CONNECTION_TIMEOUT;
-      await Js(i.gatt.connect(), o, a);
-    } catch (o) {
-      throw await ((n = i.gatt) === null || n === void 0 ? void 0 : n.disconnect()), o === a ? new Error("Connection timeout") : o;
+      const c = (t = e.timeout) !== null && t !== void 0 ? t : this.DEFAULT_CONNECTION_TIMEOUT;
+      await en(i.gatt.connect(), c, a);
+    } catch (c) {
+      throw await ((n = i.gatt) === null || n === void 0 ? void 0 : n.disconnect()), c === a ? new Error("Connection timeout") : c;
     }
   }
   onDisconnected(e) {
@@ -2043,15 +2056,15 @@ class Zs extends ie {
   async getServices(e) {
     var t, n;
     const i = (n = await ((t = this.getDeviceFromMap(e.deviceId).gatt) === null || t === void 0 ? void 0 : t.getPrimaryServices())) !== null && n !== void 0 ? n : [], a = [];
-    for (const o of i) {
-      const l = await o.getCharacteristics(), r = [];
+    for (const c of i) {
+      const l = await c.getCharacteristics(), r = [];
       for (const u of l)
         r.push({
           uuid: u.uuid,
           properties: this.getProperties(u),
           descriptors: await this.getDescriptors(u)
         });
-      a.push({ uuid: o.uuid, characteristics: r });
+      a.push({ uuid: c.uuid, characteristics: r });
     }
     return { services: a };
   }
@@ -2168,13 +2181,13 @@ class Zs extends ie {
         continue;
       if (!i.dataPrefix)
         return !0;
-      const o = new Uint8Array(a.buffer), l = i.dataPrefix;
-      if (!(o.length < l.byteLength))
+      const c = new Uint8Array(a.buffer), l = i.dataPrefix;
+      if (!(c.length < l.byteLength))
         if (i.mask) {
           const r = i.mask;
           let u = !0;
           for (let d = 0; d < l.byteLength; d++)
-            if ((o[d] & r.getUint8(d)) !== (l.getUint8(d) & r.getUint8(d))) {
+            if ((c[d] & r.getUint8(d)) !== (l.getUint8(d) & r.getUint8(d))) {
               u = !1;
               break;
             }
@@ -2183,7 +2196,7 @@ class Zs extends ie {
         } else {
           let r = !0;
           for (let u = 0; u < l.byteLength; u++)
-            if (o[u] !== l.getUint8(u)) {
+            if (c[u] !== l.getUint8(u)) {
               r = !1;
               break;
             }
@@ -2208,11 +2221,11 @@ class Zs extends ie {
     };
   }
 }
-const Qs = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const sn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  BluetoothLeWeb: Zs
+  BluetoothLeWeb: tn
 }, Symbol.toStringTag, { value: "Module" }));
-class en extends ie {
+class nn extends ie {
   constructor() {
     super(), this.speechSynthesis = null, "speechSynthesis" in window && (this.speechSynthesis = window.speechSynthesis, window.addEventListener("beforeunload", () => {
       this.stop();
@@ -2224,8 +2237,8 @@ class en extends ie {
     return new Promise((i, a) => {
       n.onend = () => {
         i();
-      }, n.onerror = (o) => {
-        a(o);
+      }, n.onerror = (c) => {
+        a(c);
       }, t.speak(n);
     });
   }
@@ -2233,7 +2246,7 @@ class en extends ie {
     this.speechSynthesis || this.throwUnsupportedError(), this.speechSynthesis.cancel();
   }
   async getSupportedLanguages() {
-    return { languages: this.getSpeechSynthesisVoices().map((i) => i.lang).filter((i, a, o) => o.indexOf(i) == a) };
+    return { languages: this.getSpeechSynthesisVoices().map((i) => i.lang).filter((i, a, c) => c.indexOf(i) == a) };
   }
   async getSupportedVoices() {
     return { voices: this.getSpeechSynthesisVoices() };
@@ -2245,8 +2258,8 @@ class en extends ie {
     this.throwUnimplementedError();
   }
   createSpeechSynthesisUtterance(e) {
-    const t = this.getSpeechSynthesisVoices(), n = new SpeechSynthesisUtterance(), { text: i, lang: a, rate: o, pitch: l, volume: r, voice: u } = e;
-    return u !== void 0 && (n.voice = t[u]), r !== void 0 && (n.volume = r >= 0 && r <= 1 ? r : 1), o !== void 0 && (n.rate = o >= 0.1 && o <= 10 ? o : 1), l !== void 0 && (n.pitch = l >= 0 && l <= 2 ? l : 2), a && (n.lang = a), n.text = i, n;
+    const t = this.getSpeechSynthesisVoices(), n = new SpeechSynthesisUtterance(), { text: i, lang: a, rate: c, pitch: l, volume: r, voice: u } = e;
+    return u !== void 0 && (n.voice = t[u]), r !== void 0 && (n.volume = r >= 0 && r <= 1 ? r : 1), c !== void 0 && (n.rate = c >= 0.1 && c <= 10 ? c : 1), l !== void 0 && (n.pitch = l >= 0 && l <= 2 ? l : 2), a && (n.lang = a), n.text = i, n;
   }
   getSpeechSynthesisVoices() {
     return this.speechSynthesis || this.throwUnsupportedError(), (!this.supportedVoices || this.supportedVoices.length < 1) && (this.supportedVoices = this.speechSynthesis.getVoices()), this.supportedVoices;
@@ -2258,11 +2271,11 @@ class en extends ie {
     throw this.unimplemented("Not implemented on web.");
   }
 }
-const tn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const an = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  TextToSpeechWeb: en
+  TextToSpeechWeb: nn
 }, Symbol.toStringTag, { value: "Module" }));
-class sn extends ie {
+class rn extends ie {
   constructor() {
     super(...arguments), this.wakeLock = null, this._isSupported = typeof navigator < "u" && "wakeLock" in navigator, this.handleVisibilityChange = () => {
       document.visibilityState === "visible" && this.keepAwake();
@@ -2289,11 +2302,11 @@ class sn extends ie {
     throw this.unavailable("Screen Wake Lock API not available in this browser.");
   }
 }
-const nn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const on = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  KeepAwakeWeb: sn
+  KeepAwakeWeb: rn
 }, Symbol.toStringTag, { value: "Module" }));
-class an extends ie {
+class cn extends ie {
   constructor() {
     super(...arguments), this.group = "CapacitorStorage";
   }
@@ -2318,9 +2331,9 @@ class an extends ie {
   }
   async migrate() {
     var e;
-    const t = [], n = [], i = "_cap_", a = Object.keys(this.impl).filter((o) => o.indexOf(i) === 0);
-    for (const o of a) {
-      const l = o.substring(i.length), r = (e = this.impl.getItem(o)) !== null && e !== void 0 ? e : "", { value: u } = await this.get({ key: l });
+    const t = [], n = [], i = "_cap_", a = Object.keys(this.impl).filter((c) => c.indexOf(i) === 0);
+    for (const c of a) {
+      const l = c.substring(i.length), r = (e = this.impl.getItem(c)) !== null && e !== void 0 ? e : "", { value: u } = await this.get({ key: l });
       typeof u == "string" ? n.push(l) : (await this.set({ key: l, value: r }), t.push(l));
     }
     return { migrated: t, existing: n };
@@ -2343,18 +2356,18 @@ class an extends ie {
     return this.prefix + e;
   }
 }
-const rn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const ln = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  PreferencesWeb: an
+  PreferencesWeb: cn
 }, Symbol.toStringTag, { value: "Module" }));
-function At(s) {
+function _t(s) {
   const e = s.split("/").filter((n) => n !== "."), t = [];
   return e.forEach((n) => {
     n === ".." && t.length > 0 && t[t.length - 1] !== ".." ? t.pop() : t.push(n);
   }), t.join("/");
 }
-function on(s, e) {
-  s = At(s), e = At(e);
+function un(s, e) {
+  s = _t(s), e = _t(e);
   const t = s.split("/"), n = e.split("/");
   return s !== e && t.every((i, a) => i === n[a]);
 }
@@ -2362,12 +2375,12 @@ class je extends ie {
   constructor() {
     super(...arguments), this.DB_VERSION = 1, this.DB_NAME = "Disc", this._writeCmds = ["add", "put", "delete"], this.downloadFile = async (e) => {
       var t, n;
-      const i = Tt(e, e.webFetchExtra), a = await fetch(e.url, i);
-      let o;
+      const i = Rt(e, e.webFetchExtra), a = await fetch(e.url, i);
+      let c;
       if (!e.progress)
-        o = await a.blob();
+        c = await a.blob();
       else if (!a?.body)
-        o = new Blob();
+        c = new Blob();
       else {
         const r = a.body.getReader();
         let u = 0;
@@ -2388,14 +2401,14 @@ class je extends ie {
         let v = 0;
         for (const y of d)
           typeof y > "u" || (p.set(y, v), v += y.length);
-        o = new Blob([p.buffer], { type: h || void 0 });
+        c = new Blob([p.buffer], { type: h || void 0 });
       }
       return { path: (await this.writeFile({
         path: e.path,
         directory: (t = e.directory) !== null && t !== void 0 ? t : void 0,
         recursive: (n = e.recursive) !== null && n !== void 0 ? n : !1,
-        data: o
-      })).uri, blob: o };
+        data: c
+      })).uri, blob: c };
     };
   }
   readFileInChunks(e, t) {
@@ -2426,16 +2439,16 @@ class je extends ie {
   }
   async dbRequest(e, t) {
     const n = this._writeCmds.indexOf(e) !== -1 ? "readwrite" : "readonly";
-    return this.initDb().then((i) => new Promise((a, o) => {
+    return this.initDb().then((i) => new Promise((a, c) => {
       const u = i.transaction(["FileStorage"], n).objectStore("FileStorage")[e](...t);
-      u.onsuccess = () => a(u.result), u.onerror = () => o(u.error);
+      u.onsuccess = () => a(u.result), u.onerror = () => c(u.error);
     }));
   }
   async dbIndexRequest(e, t, n) {
     const i = this._writeCmds.indexOf(t) !== -1 ? "readwrite" : "readonly";
-    return this.initDb().then((a) => new Promise((o, l) => {
+    return this.initDb().then((a) => new Promise((c, l) => {
       const h = a.transaction(["FileStorage"], i).objectStore("FileStorage").index(e)[t](...n);
-      h.onsuccess = () => o(h.result), h.onerror = () => l(h.error);
+      h.onsuccess = () => c(h.result), h.onerror = () => l(h.error);
     }));
   }
   getPath(e, t) {
@@ -2465,8 +2478,8 @@ class je extends ie {
   async writeFile(e) {
     const t = this.getPath(e.directory, e.path);
     let n = e.data;
-    const i = e.encoding, a = e.recursive, o = await this.dbRequest("get", [t]);
-    if (o && o.type === "directory")
+    const i = e.encoding, a = e.recursive, c = await this.dbRequest("get", [t]);
+    if (c && c.type === "directory")
       throw Error("The supplied path is a directory.");
     const l = t.substr(0, t.lastIndexOf("/"));
     if (await this.dbRequest("get", [l]) === void 0) {
@@ -2503,8 +2516,8 @@ class je extends ie {
   async appendFile(e) {
     const t = this.getPath(e.directory, e.path);
     let n = e.data;
-    const i = e.encoding, a = t.substr(0, t.lastIndexOf("/")), o = Date.now();
-    let l = o;
+    const i = e.encoding, a = t.substr(0, t.lastIndexOf("/")), c = Date.now();
+    let l = c;
     const r = await this.dbRequest("get", [t]);
     if (r && r.type === "directory")
       throw Error("The supplied path is a directory.");
@@ -2532,7 +2545,7 @@ class je extends ie {
       type: "file",
       size: n.length,
       ctime: l,
-      mtime: o,
+      mtime: c,
       content: n
     };
     await this.dbRequest("put", [d]);
@@ -2556,14 +2569,14 @@ class je extends ie {
    * @return a promise that resolves with the mkdir result
    */
   async mkdir(e) {
-    const t = this.getPath(e.directory, e.path), n = e.recursive, i = t.substr(0, t.lastIndexOf("/")), a = (t.match(/\//g) || []).length, o = await this.dbRequest("get", [i]), l = await this.dbRequest("get", [t]);
+    const t = this.getPath(e.directory, e.path), n = e.recursive, i = t.substr(0, t.lastIndexOf("/")), a = (t.match(/\//g) || []).length, c = await this.dbRequest("get", [i]), l = await this.dbRequest("get", [t]);
     if (a === 1)
       throw Error("Cannot create Root directory");
     if (l !== void 0)
       throw Error("Current directory does already exist.");
-    if (!n && a !== 2 && o === void 0)
+    if (!n && a !== 2 && c === void 0)
       throw Error("Parent directory must exist");
-    if (n && a !== 2 && o === void 0) {
+    if (n && a !== 2 && c === void 0) {
       const d = i.substr(i.indexOf("/", 1));
       await this.mkdir({
         path: d,
@@ -2586,10 +2599,10 @@ class je extends ie {
    * @param options the options for the directory remove
    */
   async rmdir(e) {
-    const { path: t, directory: n, recursive: i } = e, a = this.getPath(n, t), o = await this.dbRequest("get", [a]);
-    if (o === void 0)
+    const { path: t, directory: n, recursive: i } = e, a = this.getPath(n, t), c = await this.dbRequest("get", [a]);
+    if (c === void 0)
       throw Error("Folder does not exist.");
-    if (o.type !== "directory")
+    if (c.type !== "directory")
       throw Error("Requested path is not a directory");
     const l = await this.readdir({ path: t, directory: n });
     if (l.files.length !== 0 && !i)
@@ -2610,10 +2623,10 @@ class je extends ie {
     if (e.path !== "" && n === void 0)
       throw Error("Folder does not exist.");
     const i = await this.dbIndexRequest("by_folder", "getAllKeys", [IDBKeyRange.only(t)]);
-    return { files: await Promise.all(i.map(async (o) => {
-      let l = await this.dbRequest("get", [o]);
-      return l === void 0 && (l = await this.dbRequest("get", [o + "/"])), {
-        name: o.substring(t.length + 1),
+    return { files: await Promise.all(i.map(async (c) => {
+      let l = await this.dbRequest("get", [c]);
+      return l === void 0 && (l = await this.dbRequest("get", [c + "/"])), {
+        name: c.substring(t.length + 1),
         type: l.type,
         size: l.size,
         ctime: l.ctime,
@@ -2683,16 +2696,16 @@ class je extends ie {
    */
   async _copy(e, t = !1) {
     let { toDirectory: n } = e;
-    const { to: i, from: a, directory: o } = e;
+    const { to: i, from: a, directory: c } = e;
     if (!i || !a)
       throw Error("Both to and from must be provided");
-    n || (n = o);
-    const l = this.getPath(o, a), r = this.getPath(n, i);
+    n || (n = c);
+    const l = this.getPath(c, a), r = this.getPath(n, i);
     if (l === r)
       return {
         uri: r
       };
-    if (on(l, r))
+    if (un(l, r))
       throw Error("To path cannot contain the from path");
     let u;
     try {
@@ -2714,7 +2727,7 @@ class je extends ie {
       throw new Error("Cannot overwrite a directory with a file");
     const d = await this.stat({
       path: a,
-      directory: o
+      directory: c
     }), h = async (p, v, y) => {
       const b = this.getPath(n, p), x = await this.dbRequest("get", [b]);
       x.ctime = v, x.mtime = y, await this.dbRequest("put", [x]);
@@ -2723,11 +2736,11 @@ class je extends ie {
       case "file": {
         const p = await this.readFile({
           path: a,
-          directory: o
+          directory: c
         });
         t && await this.deleteFile({
           path: a,
-          directory: o
+          directory: c
         });
         let v;
         !(p.data instanceof Blob) && !this.isBase64String(p.data) && (v = Ie.UTF8);
@@ -2752,18 +2765,18 @@ class je extends ie {
         }
         const p = (await this.readdir({
           path: a,
-          directory: o
+          directory: c
         })).files;
         for (const v of p)
           await this._copy({
             from: `${a}/${v.name}`,
             to: `${i}/${v.name}`,
-            directory: o,
+            directory: c,
             toDirectory: n
           }, t);
         t && await this.rmdir({
           path: a,
-          directory: o
+          directory: c
         });
       }
     }
@@ -2780,11 +2793,11 @@ class je extends ie {
   }
 }
 je._debug = !0;
-const cn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const dn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   FilesystemWeb: je
 }, Symbol.toStringTag, { value: "Module" }));
-class ln extends ie {
+class hn extends ie {
   async canShare() {
     return typeof navigator > "u" || !navigator.share ? { value: !1 } : { value: !0 };
   }
@@ -2798,7 +2811,7 @@ class ln extends ie {
     }), {};
   }
 }
-const un = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const fn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  ShareWeb: ln
+  ShareWeb: hn
 }, Symbol.toStringTag, { value: "Module" }));
