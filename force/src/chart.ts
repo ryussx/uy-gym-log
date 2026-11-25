@@ -5,6 +5,7 @@ export interface ChartOptions {
   zone?: { lo: number; hi: number } | null;
   ghost?: { t: number; kg: number }[] | null;
   marks?: number[]; // rep boundaries (seconds)
+  peaks?: { t: number; kg: number }[]; // per-rep peak markers
 }
 
 export class ForceChart {
@@ -110,6 +111,20 @@ export class ForceChart {
       const last = samples[samples.length - 1];
       ctx.lineTo(x(last.t), y(0)); ctx.lineTo(x(samples[0].t), y(0)); ctx.closePath();
       ctx.fillStyle = cLive; ctx.globalAlpha = 0.12; ctx.fill(); ctx.globalAlpha = 1;
+      // per-rep peak markers (ARX-style): dot + kg label, the best one highlighted
+      const peaks = this.opts.peaks ?? [];
+      if (peaks.length) {
+        const best = Math.max(...peaks.map((p) => p.kg));
+        ctx.font = "bold 11px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+        for (const p of peaks) {
+          const px = x(p.t), py = y(p.kg);
+          ctx.fillStyle = p.kg === best ? cLive : "#ecebe6"; ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+          const label = p.kg.toFixed(0), tw = ctx.measureText(label).width + 8, lx = Math.min(Math.max(px, padL + tw / 2), padL + pw - tw / 2), ly = Math.max(padT + 14, py - 6);
+          ctx.fillStyle = p.kg === best ? cLive : "rgba(40,42,48,0.92)"; ctx.fillRect(lx - tw / 2, ly - 14, tw, 14);
+          ctx.fillStyle = "#fff"; ctx.fillText(label, lx, ly - 1);
+        }
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      }
       // cursor
       ctx.fillStyle = cLive; ctx.beginPath(); ctx.arc(x(last.t), y(last.kg), 4, 0, Math.PI * 2); ctx.fill();
     } else if (live > 0) {

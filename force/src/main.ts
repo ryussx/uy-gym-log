@@ -240,7 +240,7 @@ function startSet() {
   recorder.start();
   voice.unlock();
   startCallouts();
-  chart.opts.marks = [];
+  chart.opts.marks = []; chart.opts.peaks = [];
   const totalS = proto.phases.length ? expand(proto).reduce((a, p) => a + p.seconds, 0) : 60;
   chart.opts.windowS = Math.max(10, Math.ceil(totalS / 10) * 10);
   $("btnStart").classList.add("hidden");
@@ -434,6 +434,7 @@ function drawLoop() {
     $("dAvg").innerHTML = delta(m.avg, p?.avg);
     $("dOut").innerHTML = bestOutputForExercise ? `<span class="muted">${((m.output / bestOutputForExercise) * 100).toFixed(0)}% of goal</span>` : "";
     const reps = detectReps(samples);
+    chart.opts.peaks = reps.map((r) => ({ t: r.peakT ?? r.startS, kg: r.peak }));
     $("sReps").textContent = reps.length ? String(reps.length) : "–";
     $("dReps").textContent = reps.length ? `last ${reps[reps.length - 1].peak.toFixed(0)} kg` : "";
   }
@@ -485,7 +486,7 @@ function showHistDetail() {
   bindSetEditor(s, "hist", async () => { renderHistory(); await refreshExerciseContext(); });
   const c = new ForceChart($<HTMLCanvasElement>("histCanvas"));
   c.opts.windowS = Math.max(10, Math.ceil(s.durationS / 10) * 10);
-  c.opts.marks = s.reps?.map((r) => r.startS) ?? [];
+  c.opts.peaks = detectReps(s.samples).map((r) => ({ t: r.peakT ?? r.startS, kg: r.peak }));
   c.draw(s.samples, s.durationS, 0);
   $("btnUseGhost").onclick = () => { ghostOn = true; localStorage.setItem("ufl.ghostOn", "1"); $<HTMLInputElement>("ghostOn").checked = true; chart.opts.ghost = s.samples; switchTab("train"); };
   $("btnSetCsv").onclick = () => exportText(`set-${s.id}.csv`, samplesCSV(s), "text/csv");

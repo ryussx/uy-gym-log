@@ -27,6 +27,7 @@ export function performedAt(s: SetRecord): number { return s.performedAt ?? s.st
 export interface RepInfo {
   index: number;
   peak: number;
+  peakT?: number; // seconds, when the peak happened
   startS: number;
   endS: number;
   durationS: number;
@@ -108,20 +109,20 @@ export function detectReps(s: { t: number; kg: number }[]): RepInfo[] {
   const on = Math.max(ACTIVE_KG, peakAll * 0.35);
   const off = Math.max(ACTIVE_KG * 0.5, peakAll * 0.2);
   const reps: RepInfo[] = [];
-  let inRep = false, start = 0, peak = 0;
+  let inRep = false, start = 0, peak = 0, peakT = 0;
   for (const p of s) {
-    if (!inRep && p.kg >= on) { inRep = true; start = p.t; peak = p.kg; }
+    if (!inRep && p.kg >= on) { inRep = true; start = p.t; peak = p.kg; peakT = p.t; }
     else if (inRep) {
-      peak = Math.max(peak, p.kg);
+      if (p.kg > peak) { peak = p.kg; peakT = p.t; }
       if (p.kg <= off) {
-        if (p.t - start >= 0.6) reps.push({ index: reps.length + 1, peak: r2(peak), startS: r2(start), endS: r2(p.t), durationS: r2(p.t - start) });
+        if (p.t - start >= 0.6) reps.push({ index: reps.length + 1, peak: r2(peak), peakT: r2(peakT), startS: r2(start), endS: r2(p.t), durationS: r2(p.t - start) });
         inRep = false;
       }
     }
   }
   if (inRep) {
     const end = s[s.length - 1].t;
-    if (end - start >= 0.6) reps.push({ index: reps.length + 1, peak: r2(peak), startS: r2(start), endS: r2(end), durationS: r2(end - start) });
+    if (end - start >= 0.6) reps.push({ index: reps.length + 1, peak: r2(peak), peakT: r2(peakT), startS: r2(start), endS: r2(end), durationS: r2(end - start) });
   }
   // A single long hold is not "reps"
   return reps.length >= 2 ? reps : [];
