@@ -49,7 +49,7 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
 
 // ---------- header ----------
 function handleValue() { const v = $<HTMLSelectElement>("handle").value; return v === "__custom" ? "" : v; }
-function linksValue() { return Math.max(0, Math.floor(Number($<HTMLInputElement>("links").value) || 0)); }
+function linksValue() { return Math.max(1, Math.floor(Number($<HTMLSelectElement>("links").value) || 1)); }
 function extKgValue() { return Math.max(0, Math.round((Number($<HTMLInputElement>("extKg").value) || 0) * 2) / 2); }
 function updateHeader() {
   const ex = $<HTMLSelectElement>("exercise").value || "Choose exercise";
@@ -676,11 +676,11 @@ function bindUI() {
   $("side").onchange = refreshExerciseContext;
   $("contraction").onchange = refreshExerciseContext;
   // links are remembered per exercise
-  const linksFor = (ex: string) => Number(localStorage.getItem(`ufl.links.${ex}`) ?? "0") || 0;
-  const loadLinks = () => { $<HTMLInputElement>("links").value = String(linksFor($<HTMLSelectElement>("exercise").value)); };
+  const linksFor = (ex: string) => Math.max(1, Number(localStorage.getItem(`ufl.links.${ex}`) ?? "1") || 1);
+  const loadLinks = () => { $<HTMLSelectElement>("links").value = String(Math.min(8, linksFor($<HTMLSelectElement>("exercise").value))); };
   $("exercise").addEventListener("change", () => { loadLinks(); updateHeader(); });
   $("extKg").oninput = () => { updateHeader(); refreshExerciseContext(); };
-  $("links").oninput = () => { localStorage.setItem(`ufl.links.${$<HTMLSelectElement>("exercise").value}`, String(linksValue())); updateHeader(); refreshExerciseContext(); };
+  $("links").onchange = () => { localStorage.setItem(`ufl.links.${$<HTMLSelectElement>("exercise").value}`, String(linksValue())); updateHeader(); refreshExerciseContext(); };
   setTimeout(loadLinks, 0);
   $<HTMLInputElement>("preCount").value = localStorage.getItem("ufl.preCount") ?? "10";
   $("preCount").onchange = () => localStorage.setItem("ufl.preCount", String(Math.max(0, Number($<HTMLInputElement>("preCount").value) || 0)));

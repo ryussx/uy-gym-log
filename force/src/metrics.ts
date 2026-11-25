@@ -6,12 +6,12 @@ export const SIDE_LABEL: Record<string, string> = { both: "", left: "Left", righ
 export const CONTRACTION_LABEL: Record<string, string> = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
 /** Display name with how it was performed, e.g. "SR Chest Press — Right, Eccentric". */
 export function displayName(exercise: string, side: string, contraction?: string, handle?: string, links?: number, extKg?: number) {
-  const parts = [handle?.trim() ?? "", SIDE_LABEL[side] ?? "", CONTRACTION_LABEL[contraction ?? "complete"] ?? "", links ? `${links} link${links === 1 ? "" : "s"}` : "", extKg ? `+${extKg} kg` : ""].filter(Boolean);
+  const parts = [handle?.trim() ?? "", SIDE_LABEL[side] ?? "", CONTRACTION_LABEL[contraction ?? "complete"] ?? "", (links ?? 0) > 1 ? `${links} links` : "", extKg ? `+${extKg} kg` : ""].filter(Boolean);
   return parts.length ? `${exercise} — ${parts.join(", ")}` : exercise;
 }
 /** Key for maxes / comparisons. Complete contraction keeps the legacy "exercise|side" key. */
 export function variantKey(exercise: string, side: string, contraction?: string, handle?: string, links?: number, extKg?: number) {
-  const c = contraction ?? "complete", h = handle?.trim() ?? "", l = links ?? 0, e = extKg ?? 0;
+  const c = contraction ?? "complete", h = handle?.trim() ?? "", l = (links ?? 0) > 1 ? links! : 0, e = extKg ?? 0;
   let k = c === "complete" && !h && !l && !e ? `${exercise}|${side}` : `${exercise}|${side}|${c}`;
   if (h || l || e) k += `|${h}`;
   if (l || e) k += `|${l}L`;
@@ -19,7 +19,7 @@ export function variantKey(exercise: string, side: string, contraction?: string,
   return k;
 }
 export function sameVariant(s: SetRecord, exercise: string, side: string, contraction?: string, handle?: string, links?: number, extKg?: number) {
-  return s.exercise === exercise && s.side === side && (s.contraction ?? "complete") === (contraction ?? "complete") && (s.handle ?? "") === (handle?.trim() ?? "") && (s.links ?? 0) === (links ?? 0) && (s.extKg ?? 0) === (extKg ?? 0);
+  return s.exercise === exercise && s.side === side && (s.contraction ?? "complete") === (contraction ?? "complete") && (s.handle ?? "") === (handle?.trim() ?? "") && Math.max(1, s.links ?? 1) === Math.max(1, links ?? 1) && (s.extKg ?? 0) === (extKg ?? 0);
 }
 
 export interface SetRecord {

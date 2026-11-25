@@ -36,51 +36,51 @@ const wn = (n) => {
       return console.warn(`Capacitor plugin "${p}" already registered. Cannot register plugins twice.`), l.proxy;
     const h = i(), y = c(p);
     let b;
-    const w = async () => (!b && h in g ? b = typeof g[h] == "function" ? b = await g[h]() : b = g[h] : e !== null && !b && "web" in g && (b = typeof g.web == "function" ? b = await g.web() : b = g.web), b), A = ($, R) => {
+    const w = async () => (!b && h in g ? b = typeof g[h] == "function" ? b = await g[h]() : b = g[h] : e !== null && !b && "web" in g && (b = typeof g.web == "function" ? b = await g.web() : b = g.web), b), A = ($, M) => {
       var m, S;
       if (y) {
-        const C = y?.methods.find((E) => R === E.name);
+        const C = y?.methods.find((E) => M === E.name);
         if (C)
-          return C.rtype === "promise" ? (E) => t.nativePromise(p, R.toString(), E) : (E, ce) => t.nativeCallback(p, R.toString(), E, ce);
+          return C.rtype === "promise" ? (E) => t.nativePromise(p, M.toString(), E) : (E, ce) => t.nativeCallback(p, M.toString(), E, ce);
         if ($)
-          return (m = $[R]) === null || m === void 0 ? void 0 : m.bind($);
+          return (m = $[M]) === null || m === void 0 ? void 0 : m.bind($);
       } else {
         if ($)
-          return (S = $[R]) === null || S === void 0 ? void 0 : S.bind($);
+          return (S = $[M]) === null || S === void 0 ? void 0 : S.bind($);
         throw new Qe(`"${p}" plugin is not implemented on ${h}`, ve.Unimplemented);
       }
     }, N = ($) => {
-      let R;
+      let M;
       const m = (...S) => {
         const C = w().then((E) => {
           const ce = A(E, $);
           if (ce) {
             const le = ce(...S);
-            return R = le?.remove, le;
+            return M = le?.remove, le;
           } else
             throw new Qe(`"${p}.${$}()" is not implemented on ${h}`, ve.Unimplemented);
         });
-        return $ === "addListener" && (C.remove = async () => R()), C;
+        return $ === "addListener" && (C.remove = async () => M()), C;
       };
       return m.toString = () => `${$.toString()}() { [capacitor code] }`, Object.defineProperty(m, "name", {
         value: $,
         writable: !1,
         configurable: !1
       }), m;
-    }, V = N("addListener"), j = N("removeListener"), q = ($, R) => {
-      const m = V({ eventName: $ }, R), S = async () => {
+    }, V = N("addListener"), j = N("removeListener"), q = ($, M) => {
+      const m = V({ eventName: $ }, M), S = async () => {
         const E = await m;
         j({
           eventName: $,
           callbackId: E
-        }, R);
+        }, M);
       }, C = new Promise((E) => m.then(() => E({ remove: S })));
       return C.remove = async () => {
         console.warn("Using addListener() without 'await' is deprecated."), await S();
       }, C;
     }, _ = new Proxy({}, {
-      get($, R) {
-        switch (R) {
+      get($, M) {
+        switch (M) {
           case "$$typeof":
             return;
           case "toJSON":
@@ -90,7 +90,7 @@ const wn = (n) => {
           case "removeListener":
             return j;
           default:
-            return N(R);
+            return N(M);
         }
       }
     });
@@ -382,14 +382,14 @@ function On(n) {
     return Dn(n);
   throw new Error("Invalid UUID");
 }
-function Rt(n) {
+function Mt(n) {
   const e = {};
   if (n)
     return n.forEach((t, s) => {
       e[s.toString()] = t;
     }), e;
 }
-function Mt(n) {
+function Rt(n) {
   if (n !== void 0) {
     if (typeof n == "string") {
       const e = Le(n);
@@ -398,7 +398,7 @@ function Mt(n) {
     return n instanceof DataView ? new Uint8Array(n.buffer, n.byteOffset, n.byteLength) : n;
   }
 }
-function Me(n) {
+function Re(n) {
   if (n !== void 0)
     return n instanceof DataView ? Ce(n) : Ce(new DataView(n.buffer, n.byteOffset, n.byteLength));
 }
@@ -669,7 +669,7 @@ class An {
     });
   }
   validateRequestBleDeviceOptions(e) {
-    return e = Object.assign({}, e), e.services && (e.services = e.services.map(P)), e.optionalServices && (e.optionalServices = e.optionalServices.map(P)), e.serviceData && B.getPlatform() !== "web" && (e.serviceData = e.serviceData.map((t) => Object.assign(Object.assign({}, t), { serviceUuid: P(t.serviceUuid), dataPrefix: Me(t.dataPrefix), mask: Me(t.mask) }))), e.manufacturerData && (B.getPlatform() !== "web" ? e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Me(t.dataPrefix), mask: Me(t.mask) })) : e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Mt(t.dataPrefix), mask: Mt(t.mask) }))), e;
+    return e = Object.assign({}, e), e.services && (e.services = e.services.map(P)), e.optionalServices && (e.optionalServices = e.optionalServices.map(P)), e.serviceData && B.getPlatform() !== "web" && (e.serviceData = e.serviceData.map((t) => Object.assign(Object.assign({}, t), { serviceUuid: P(t.serviceUuid), dataPrefix: Re(t.dataPrefix), mask: Re(t.mask) }))), e.manufacturerData && (B.getPlatform() !== "web" ? e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Re(t.dataPrefix), mask: Re(t.mask) })) : e.manufacturerData = e.manufacturerData.map((t) => Object.assign(Object.assign({}, t), { dataPrefix: Rt(t.dataPrefix), mask: Rt(t.mask) }))), e;
   }
   convertValue(e) {
     return typeof e == "string" ? Le(e) : e === void 0 ? new DataView(new ArrayBuffer(0)) : e;
@@ -726,7 +726,7 @@ function Ft(n, e) {
     t += s + 1;
   }
 }
-function Rn(n) {
+function Mn(n) {
   return n.byteLength < st + 2 ? null : (n.getUint8(st) << 8 | n.getUint8(st + 1)) / 100;
 }
 class Pe extends Yt {
@@ -763,7 +763,7 @@ class Pe extends Yt {
         const t = e.localName ?? e.device.name ?? "", s = e.manufacturerData ?? {}, i = Object.keys(s);
         let a = s[String(nt)] ?? s[nt.toString(16)];
         !a && /^(IF_|WH-|WEIHENG)/i.test(t) && i.length && (a = s[i[0]]), !a && e.rawAdvertisement && (a = Ft(e.rawAdvertisement, nt) ?? (/^IF_/i.test(t) ? Ft(e.rawAdvertisement) : void 0));
-        const o = a ? Rn(a) : null, c = { id: e.device.deviceId, name: t, rssi: e.rssi ?? 0, keys: i.join(","), hex: a ? It(a) : e.rawAdvertisement ? It(e.rawAdvertisement).slice(0, 60) : "", kg: o, t: Date.now() };
+        const o = a ? Mn(a) : null, c = { id: e.device.deviceId, name: t, rssi: e.rssi ?? 0, keys: i.join(","), hex: a ? It(a) : e.rawAdvertisement ? It(e.rawAdvertisement).slice(0, 60) : "", kg: o, t: Date.now() };
         this.seen.set(c.id, c), this.onSeen(c), o !== null && (this.lastPacketAt = Date.now(), this.emitRaw(o));
       }
     );
@@ -777,7 +777,7 @@ class Pe extends Yt {
     this.scanning = !1, this.clearLost(), this.setStatus("idle");
   }
 }
-class Mn extends Yt {
+class Rn extends Yt {
   constructor() {
     super(...arguments), this.name = "Simulator", this.timer = null, this.effort = 0, this.exact = !1, this.current = 0, this.fatigue = 0;
   }
@@ -800,16 +800,16 @@ class Mn extends Yt {
 }
 const In = { both: "", left: "Left", right: "Right" }, Fn = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
 function be(n, e, t, s, i, a) {
-  const o = [s?.trim() ?? "", In[e] ?? "", Fn[t ?? "complete"] ?? "", i ? `${i} link${i === 1 ? "" : "s"}` : "", a ? `+${a} kg` : ""].filter(Boolean);
+  const o = [s?.trim() ?? "", In[e] ?? "", Fn[t ?? "complete"] ?? "", (i ?? 0) > 1 ? `${i} links` : "", a ? `+${a} kg` : ""].filter(Boolean);
   return o.length ? `${n} — ${o.join(", ")}` : n;
 }
 function Oe(n, e, t, s, i, a) {
-  const o = t ?? "complete", c = s?.trim() ?? "", d = i ?? 0, u = a ?? 0;
+  const o = t ?? "complete", c = s?.trim() ?? "", d = (i ?? 0) > 1 ? i : 0, u = a ?? 0;
   let f = o === "complete" && !c && !d && !u ? `${n}|${e}` : `${n}|${e}|${o}`;
   return (c || d || u) && (f += `|${c}`), (d || u) && (f += `|${d}L`), u && (f += `|${u}E`), f;
 }
 function Bn(n, e, t, s, i, a, o) {
-  return n.exercise === e && n.side === t && (n.contraction ?? "complete") === (s ?? "complete") && (n.handle ?? "") === (i?.trim() ?? "") && (n.links ?? 0) === (a ?? 0) && (n.extKg ?? 0) === (o ?? 0);
+  return n.exercise === e && n.side === t && (n.contraction ?? "complete") === (s ?? "complete") && (n.handle ?? "") === (i?.trim() ?? "") && Math.max(1, n.links ?? 1) === Math.max(1, a ?? 1) && (n.extKg ?? 0) === (o ?? 0);
 }
 function we(n) {
   return n.manualReps && n.manualReps > 0 ? Math.round(n.manualReps) : 1;
@@ -929,8 +929,8 @@ class Xt {
       i.beginPath(), i.moveTo(c, C), i.lineTo(a - d, C), i.stroke(), i.fillText(S.toFixed(0), c - 6, C);
     }
     i.textAlign = "center", i.textBaseline = "top";
-    const R = N <= 30 ? 5 : N <= 90 ? 10 : 30;
-    for (let m = 0; m <= N; m += R) {
+    const M = N <= 30 ? 5 : N <= 90 ? 10 : 30;
+    for (let m = 0; m <= N; m += M) {
       const S = q(m);
       i.beginPath(), i.moveTo(S, u), i.lineTo(S, u + g), i.stroke(), i.fillText(Un(m), S, u + g + 6);
     }
@@ -951,8 +951,8 @@ class Xt {
         for (const E of S) {
           const ce = q(E.t), le = _(E.kg);
           i.fillStyle = E.kg === C ? b : "#ecebe6", i.beginPath(), i.arc(ce, le, 3.5, 0, Math.PI * 2), i.fill();
-          const Lt = E.kg.toFixed(0), Re = i.measureText(Lt).width + 8, Ct = Math.min(Math.max(ce, c + Re / 2), c + p - Re / 2), Pt = Math.max(u + 14, le - 6);
-          i.fillStyle = E.kg === C ? b : "rgba(40,42,48,0.92)", i.fillRect(Ct - Re / 2, Pt - 14, Re, 14), i.fillStyle = "#fff", i.fillText(Lt, Ct, Pt - 1);
+          const Lt = E.kg.toFixed(0), Me = i.measureText(Lt).width + 8, Ct = Math.min(Math.max(ce, c + Me / 2), c + p - Me / 2), Pt = Math.max(u + 14, le - 6);
+          i.fillStyle = E.kg === C ? b : "rgba(40,42,48,0.92)", i.fillRect(Ct - Me / 2, Pt - 14, Me, 14), i.fillStyle = "#fff", i.fillText(Lt, Ct, Pt - 1);
         }
         i.textAlign = "left", i.textBaseline = "alphabetic";
       }
@@ -1467,7 +1467,7 @@ function Ke() {
   return n === "__custom" ? "" : n;
 }
 function Ae() {
-  return Math.max(0, Math.floor(Number(r("links").value) || 0));
+  return Math.max(1, Math.floor(Number(r("links").value) || 1));
 }
 function ze() {
   return Math.max(0, Math.round((Number(r("extKg").value) || 0) * 2) / 2);
@@ -1670,21 +1670,21 @@ function _e(n, e, t) {
 }
 async function fs(n) {
   const e = he, t = await T.maxes(), s = n.side === "left" ? "right" : n.side === "right" ? "left" : null, i = [];
-  n.extKg && i.push(M("External load", `+${n.extKg} kg (not measured by the scale)`)), i.push(M("Duration", `${n.durationS.toFixed(1)} s`)), i.push(M("Peak force", `${L(n.peak)} kg`, De(n.peak, e?.peak))), i.push(M("Intensity (avg)", `${L(n.avg)} kg`, De(n.avg, e?.avg))), i.push(M("Output (kg·s)", L(n.output), De(n.output, e?.output))), i.push(M("Inroad", `${n.inroad.toFixed(0)}%`, n.inroad >= 30 ? '<span class="badge good">deep fatigue</span>' : n.inroad >= 15 ? '<span class="badge">moderate</span>' : '<span class="badge warn">shallow — stopped early?</span>')), re && i.push(M("vs. best output", `${(n.output / re * 100).toFixed(0)}%`, n.output > re ? '<span class="badge good">new best</span>' : "")), Y && i.push(M("Peak as % of max", `${(n.peak / Y * 100).toFixed(0)}%`));
+  n.extKg && i.push(R("External load", `+${n.extKg} kg (not measured by the scale)`)), i.push(R("Duration", `${n.durationS.toFixed(1)} s`)), i.push(R("Peak force", `${L(n.peak)} kg`, De(n.peak, e?.peak))), i.push(R("Intensity (avg)", `${L(n.avg)} kg`, De(n.avg, e?.avg))), i.push(R("Output (kg·s)", L(n.output), De(n.output, e?.output))), i.push(R("Inroad", `${n.inroad.toFixed(0)}%`, n.inroad >= 30 ? '<span class="badge good">deep fatigue</span>' : n.inroad >= 15 ? '<span class="badge">moderate</span>' : '<span class="badge warn">shallow — stopped early?</span>')), re && i.push(R("vs. best output", `${(n.output / re * 100).toFixed(0)}%`, n.output > re ? '<span class="badge good">new best</span>' : "")), Y && i.push(R("Peak as % of max", `${(n.peak / Y * 100).toFixed(0)}%`));
   let a = "";
   if (n.reps && n.reps.length) {
     const d = Math.max(...n.reps.map((f) => f.peak));
     a = `<div class="muted" style="margin-top:8px">Reps: ${n.reps.length} · first ${L(n.reps[0].peak)} → last ${L(n.reps[n.reps.length - 1].peak)} kg · avg rep ${(n.reps.reduce((f, p) => f + p.durationS, 0) / n.reps.length).toFixed(1)} s</div>
       <div class="repbars">${n.reps.map((f) => `<div style="height:${Math.max(4, f.peak / d * 100)}%"><span>${f.peak.toFixed(0)}</span></div>`).join("")}</div>`;
     const u = n.mode === "critical" ? Nn(n.reps) : null;
-    u && (a += M("Critical force", `${L(u)} kg${Y ? ` (${(u / Y * 100).toFixed(0)}% of max)` : ""}`));
+    u && (a += R("Critical force", `${L(u)} kg${Y ? ` (${(u / Y * 100).toFixed(0)}% of max)` : ""}`));
   }
   let o = "";
   if (s) {
     const d = t[Oe(n.exercise, n.side, n.contraction, n.handle, n.links, n.extKg)]?.kg, u = t[Oe(n.exercise, s, n.contraction, n.handle, n.links, n.extKg)]?.kg;
     if (d && u) {
       const f = (Math.abs(d - u) / Math.max(d, u) * 100).toFixed(0);
-      o = M("Left/right gap", `${f}% (L ${L(n.side === "left" ? d : u)} / R ${L(n.side === "left" ? u : d)})`, Number(f) > 10 ? '<span class="badge warn">asymmetry</span>' : '<span class="badge good">balanced</span>');
+      o = R("Left/right gap", `${f}% (L ${L(n.side === "left" ? d : u)} / R ${L(n.side === "left" ? u : d)})`, Number(f) > 10 ? '<span class="badge warn">asymmetry</span>' : '<span class="badge good">balanced</span>');
     }
   }
   const c = r("summary");
@@ -1721,7 +1721,7 @@ function fn(n, e, t) {
     a.key === "Enter" && s();
   };
 }
-function M(n, e, t = "") {
+function R(n, e, t = "") {
   return `<div class="fl-line"><span>${n}</span><span>${e} ${t}</span></div>`;
 }
 function De(n, e) {
@@ -1766,9 +1766,9 @@ function ps() {
   }
   e.classList.remove("hidden"), e.innerHTML = `<h4>${O(be(n.exercise, n.side, n.contraction, n.handle, n.links, n.extKg))} · ${new Date(n.startedAt).toLocaleString()}</h4>
     <div class="chartwrap small"><canvas id="histCanvas"></canvas></div>
-    ${M("Peak", `${L(n.peak)} kg`)}${M("Intensity", `${L(n.avg)} kg`)}${M("Output", L(n.output))}${M("Inroad", `${n.inroad.toFixed(0)}%`)}
-    ${M("Reps (logged)", String(we(n)))}
-    ${n.reps?.length ? M("Auto-detected", `${n.reps.length} (${n.reps.map((s) => s.peak.toFixed(0)).join(", ")} kg)`) : ""}
+    ${R("Peak", `${L(n.peak)} kg`)}${R("Intensity", `${L(n.avg)} kg`)}${R("Output", L(n.output))}${R("Inroad", `${n.inroad.toFixed(0)}%`)}
+    ${R("Reps (logged)", String(we(n)))}
+    ${n.reps?.length ? R("Auto-detected", `${n.reps.length} (${n.reps.map((s) => s.peak.toFixed(0)).join(", ")} kg)`) : ""}
     ${hn(n, "hist")}
     <div class="actions-inline" style="margin-top:8px"><button class="sm" id="btnUseGhost">Use as ghost trace</button><button class="sm ghost" id="btnSetCsv">Export samples CSV</button></div>`, fn(n, "hist", async () => {
     Q(), await D();
@@ -1842,7 +1842,7 @@ function ms() {
     const l = new Pe();
     l.onSeen = () => mn(l), wt(l);
   }, r("btnSim").onclick = () => {
-    te = new Mn(), te.exact = r("simExact").checked, r("simPanel").classList.remove("hidden"), wt(te);
+    te = new Rn(), te.exact = r("simExact").checked, r("simPanel").classList.remove("hidden"), wt(te);
   }, r("simExact").onchange = (l) => {
     const h = l.target.checked;
     te && (te.exact = h), r("simHelp").textContent = h ? "Reading tracks the slider exactly." : 'Slide up to "push", back to 0 to rest. Fatigue is simulated.';
@@ -1909,14 +1909,14 @@ Allow the Camera permission for UY Force Lab in Android settings.`), r("camOn").
   r("btnNewExSave").onclick = i, r("newExName").onkeydown = (l) => {
     l.key === "Enter" && i();
   }, r("side").onchange = D, r("contraction").onchange = D;
-  const a = (l) => Number(localStorage.getItem(`ufl.links.${l}`) ?? "0") || 0, o = () => {
-    r("links").value = String(a(r("exercise").value));
+  const a = (l) => Math.max(1, Number(localStorage.getItem(`ufl.links.${l}`) ?? "1") || 1), o = () => {
+    r("links").value = String(Math.min(8, a(r("exercise").value)));
   };
   r("exercise").addEventListener("change", () => {
     o(), de();
   }), r("extKg").oninput = () => {
     de(), D();
-  }, r("links").oninput = () => {
+  }, r("links").onchange = () => {
     localStorage.setItem(`ufl.links.${r("exercise").value}`, String(Ae())), de(), D();
   }, setTimeout(o, 0), r("preCount").value = localStorage.getItem("ufl.preCount") ?? "10", r("preCount").onchange = () => localStorage.setItem("ufl.preCount", String(Math.max(0, Number(r("preCount").value) || 0)));
   const c = r("handle"), d = localStorage.getItem("ufl.handle") ?? "";
@@ -2100,8 +2100,8 @@ class ws extends ie {
         localName: c.name,
         rssi: e.rssi,
         txPower: e.txPower,
-        manufacturerData: Rt(e.manufacturerData),
-        serviceData: Rt(e.serviceData),
+        manufacturerData: Mt(e.manufacturerData),
+        serviceData: Mt(e.serviceData),
         uuids: (i = e.uuids) === null || i === void 0 ? void 0 : i.map(On)
       };
       this.notifyListeners("onScanResult", d);
