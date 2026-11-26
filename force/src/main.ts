@@ -137,14 +137,16 @@ async function refreshExerciseContext() {
   lastSetForExercise = mine.length ? mine[mine.length - 1] : null;
   bestOutputForExercise = mine.reduce((m, s) => Math.max(m, s.output), 0);
   const maxes = await store.maxes(); maxesCache = maxes;
-  currentMax = maxes[variantKey(ex, side, con, hd, lk, ek)]?.kg ?? 0;
+  // reference max = the best peak ever recorded for this exact variant (a Max test, if any, counts too)
+  const bestPeakEver = mine.reduce((m, s) => Math.max(m, s.peak), 0);
+  currentMax = Math.max(maxes[variantKey(ex, side, con, hd, lk, ek)]?.kg ?? 0, bestPeakEver);
   // previous peak for this exact variant, visible before the set starts
   if (!recorder.recording) {
     const bestPeak = mine.reduce((m, s) => Math.max(m, s.peak), 0);
     $("sPeak").textContent = lastSetForExercise ? fmt(lastSetForExercise.peak) : "–";
     $("dPeak").innerHTML = lastSetForExercise ? `<span class="muted">last · best ${fmt(bestPeak)} kg</span>` : `<span class="muted">no previous set</span>`;
   }
-  $("zoneMax").textContent = currentMax ? `(max ${currentMax} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no max yet — run a Max test)";
+  $("zoneMax").textContent = currentMax ? `(best ${currentMax.toFixed(1)} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no previous set for this exercise yet)";
   $("sGoal").textContent = bestOutputForExercise ? fmt(bestOutputForExercise) : "–";
   chart.opts.ghost = ghostOn ? (lastSetForExercise?.samples ?? null) : null;
   chart.opts.zone = zoneActive() ? zoneKg() : null;
@@ -407,7 +409,9 @@ async function showSummary(rec: SetRecord) {
   }
   let lr = "";
   if (other) {
-    const a = maxes[variantKey(rec.exercise, rec.side, rec.contraction, rec.handle, rec.links, rec.extKg)]?.kg, b = maxes[variantKey(rec.exercise, other, rec.contraction, rec.handle, rec.links, rec.extKg)]?.kg;
+    const bestOf = (sd: string) => sets.filter((s) => sameVariant(s, rec.exercise, sd, rec.contraction, rec.handle, rec.links, rec.extKg)).reduce((m, s) => Math.max(m, s.peak), 0);
+    const a = Math.max(maxes[variantKey(rec.exercise, rec.side, rec.contraction, rec.handle, rec.links, rec.extKg)]?.kg ?? 0, bestOf(rec.side)) || undefined;
+    const b = Math.max(maxes[variantKey(rec.exercise, other, rec.contraction, rec.handle, rec.links, rec.extKg)]?.kg ?? 0, bestOf(other)) || undefined;
     if (a && b) {
       const gap = ((Math.abs(a - b) / Math.max(a, b)) * 100).toFixed(0);
       lr = line("Left/right gap", `${gap}% (L ${fmt(rec.side === "left" ? a : b)} / R ${fmt(rec.side === "left" ? b : a)})`, Number(gap) > 10 ? `<span class="badge warn">asymmetry</span>` : `<span class="badge good">balanced</span>`);
