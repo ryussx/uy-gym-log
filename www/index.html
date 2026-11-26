@@ -899,7 +899,8 @@
       <div id="zoneBar" class="zonebar">
         <label class="inline"><input type="checkbox" id="zoneOn" /> Target zone</label>
         <input type="number" id="zoneLo" value="60" min="0" max="100" step="5" /> –
-        <input type="number" id="zoneHi" value="75" min="0" max="100" step="5" /> % of best
+        <input type="number" id="zoneHi" value="75" min="0" max="100" step="5" /> % of
+        <select id="zoneRef" title="What the percentage refers to"><option value="best">all-time best peak</option><option value="last">last set's peak</option><option value="maxtest">Max test result</option></select>
         <span id="zoneMax" class="muted"></span>
         <label class="inline" style="margin:0 0 0 auto"><input type="checkbox" id="ghostOn" checked /> Ghost (last set)</label>
       </div>

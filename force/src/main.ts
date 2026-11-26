@@ -137,16 +137,17 @@ async function refreshExerciseContext() {
   lastSetForExercise = mine.length ? mine[mine.length - 1] : null;
   bestOutputForExercise = mine.reduce((m, s) => Math.max(m, s.output), 0);
   const maxes = await store.maxes(); maxesCache = maxes;
-  // reference max = the best peak ever recorded for this exact variant (a Max test, if any, counts too)
+  // reference for the target zone: all-time best peak, last set's peak, or a recorded Max test
   const bestPeakEver = mine.reduce((m, s) => Math.max(m, s.peak), 0);
-  currentMax = Math.max(maxes[variantKey(ex, side, con, hd, lk, ek)]?.kg ?? 0, bestPeakEver);
+  const ref = $<HTMLSelectElement>("zoneRef").value;
+  currentMax = ref === "last" ? (lastSetForExercise?.peak ?? 0) : ref === "maxtest" ? (maxes[variantKey(ex, side, con, hd, lk, ek)]?.kg ?? 0) : Math.max(maxes[variantKey(ex, side, con, hd, lk, ek)]?.kg ?? 0, bestPeakEver);
   // previous peak for this exact variant, visible before the set starts
   if (!recorder.recording) {
     const bestPeak = mine.reduce((m, s) => Math.max(m, s.peak), 0);
     $("sPeak").textContent = lastSetForExercise ? fmt(lastSetForExercise.peak) : "–";
     $("dPeak").innerHTML = lastSetForExercise ? `<span class="muted">last · best ${fmt(bestPeak)} kg</span>` : `<span class="muted">no previous set</span>`;
   }
-  $("zoneMax").textContent = currentMax ? `(best ${currentMax.toFixed(1)} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : "(no previous set for this exercise yet)";
+  $("zoneMax").textContent = currentMax ? `(${ref === "last" ? "last" : ref === "maxtest" ? "max test" : "best"} ${currentMax.toFixed(1)} kg → ${zoneKg().lo.toFixed(1)}–${zoneKg().hi.toFixed(1)} kg)` : (ref === "maxtest" ? "(no Max test for this exercise yet)" : "(no previous set for this exercise yet)");
   $("sGoal").textContent = bestOutputForExercise ? fmt(bestOutputForExercise) : "–";
   chart.opts.ghost = ghostOn ? (lastSetForExercise?.samples ?? null) : null;
   chart.opts.zone = zoneActive() ? zoneKg() : null;
@@ -679,6 +680,8 @@ function bindUI() {
   $<HTMLInputElement>("newExName").onkeydown = (e) => { if (e.key === "Enter") saveNewEx(); };
   $("side").onchange = refreshExerciseContext;
   $("contraction").onchange = refreshExerciseContext;
+  $<HTMLSelectElement>("zoneRef").value = localStorage.getItem("ufl.zoneRef") ?? "best";
+  $("zoneRef").onchange = () => { localStorage.setItem("ufl.zoneRef", $<HTMLSelectElement>("zoneRef").value); refreshExerciseContext(); };
   // links are remembered per exercise
   const linksFor = (ex: string) => Math.max(1, Number(localStorage.getItem(`ufl.links.${ex}`) ?? "1") || 1);
   const loadLinks = () => { $<HTMLSelectElement>("links").value = String(Math.min(8, linksFor($<HTMLSelectElement>("exercise").value))); };
