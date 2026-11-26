@@ -76,6 +76,16 @@
     max-width: 720px;
     margin: 0 auto;
   }
+  /* collapse handle for the tab bar */
+  .tabs-toggle {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 56px; height: 18px; border: 1px solid var(--line-2); border-bottom: 0; border-radius: 10px 10px 0 0;
+    background: var(--panel); color: var(--dim); font-size: 11px; line-height: 16px; text-align: center; z-index: 21; cursor: pointer;
+  }
+  body.tabs-collapsed .tabs { transform: translateY(110%); }
+  .tabs { transition: transform .18s ease; }
+  body.tabs-collapsed .tabs-toggle { bottom: 0; }
+  body:not(.tabs-collapsed) .tabs-toggle { bottom: var(--tabs-h, 128px); }
   .tab {
     padding: 10px 4px 12px;
     text-align: center;
@@ -1011,6 +1021,7 @@
   <script type="module" src="/src/main.ts"></script>
   </div>
 
+  <div class="tabs-toggle" id="tabsToggle" title="Hide / show the tab bar">▾</div>
   <div class="tabs">
     <button class="tab active" data-view="workout"><span class="tab-icon">▶</span>WORKOUT</button>
     <button class="tab" data-view="remind"><span class="tab-icon">⏰</span>REMIND</button>
@@ -3188,6 +3199,17 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 // ---- Force Lab (built-in) host API ----
 // The Force tab (www/force/force.js) calls these: shared exercise list and automatic
 // logging of every force set into that day's session (one session per date).
+// ---- collapsible tab bar ----
+(function () {
+  const t = document.getElementById('tabsToggle'), bar = document.querySelector('.tabs');
+  const place = () => { document.documentElement.style.setProperty('--tabs-h', bar.offsetHeight + 'px'); };
+  const apply = (c) => { document.body.classList.toggle('tabs-collapsed', c); t.textContent = c ? '▴' : '▾'; localStorage.setItem('uy_tabs_collapsed', c ? '1' : '0'); place(); };
+  t.onclick = () => apply(!document.body.classList.contains('tabs-collapsed'));
+  window.addEventListener('resize', place);
+  apply(localStorage.getItem('uy_tabs_collapsed') === '1');
+  setTimeout(place, 50);
+})();
+
 window.GymLog = {
   exerciseNames() {
     // Force Lab's own (isometric / self-resisted) exercises first, then the rest of the library
