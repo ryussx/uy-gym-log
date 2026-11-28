@@ -48,8 +48,9 @@ button.big { padding: 16px; font-size: 18px; flex: 1; }
 .row label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); flex: 1; min-width: 140px; }
 select, input[type="number"], input[type="text"] { background: var(--panel); color: var(--text); border: 1px solid #2f333a; border-radius: 8px; padding: 9px 10px; font-size: 16px; width: 100%; }
 input[type="number"] { width: 70px; }
-.params { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
-.params label { display: flex; flex-direction: column; font-size: 11px; color: var(--muted); min-width: 0; flex: 0; }
+.params { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; flex: 1 1 100%; }
+.params label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); min-width: 110px; flex: 0 0 auto; white-space: nowrap; }
+.params input { width: 100px; }
 .help { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
 .muted { color: var(--muted); }
 label { text-transform: none; letter-spacing: 0; font-weight: 500; }
