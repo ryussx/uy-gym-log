@@ -18,6 +18,8 @@ export function buildProtocol(id: string, p: Record<string, number> = {}): Proto
   switch (id) {
     case "free":
       return { id, label: "Free set", describe: "Open-ended. Start, work, stop.", phases: [] };
+    case "offset":
+      return { id, label: "Offset capture", describe: `Hang from the scale and stay still. When the raw reading holds steady for ${p.steady ?? 5} s, that value is proposed as the offset (e.g. your body weight) — you confirm, nothing is logged.`, phases: [] };
     case "countdown":
       return {
         id, label: `Countdown ${total}s`, describe: "One continuous max effort for the whole timer — the ARX protocol.",

@@ -45,7 +45,49 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
   countdown: [{ key: "total", label: "seconds", def: 60 }],
   ramp: [{ key: "ramp", label: "ramp s", def: 5 }, { key: "hold", label: "hold s", def: 10 }],
   repeaters: [{ key: "reps", label: "reps", def: 6 }, { key: "hold", label: "on s", def: 10 }, { key: "rest", label: "off s", def: 20 }],
+  offset: [{ key: "steady", label: "steady for s", def: 5 }, { key: "tol", label: "± kg", def: 1 }],
 };
+
+// ---------- offset capture mode ----------
+// Watches the RAW reading; once it stays within ±tol for `steady` seconds, proposes it as the offset.
+let offsetCap: { active: boolean; t0: number; lo: number; hi: number; sum: number; n: number; steady: number; tol: number } | null = null;
+function offsetCaptureStart(steady: number, tol: number) {
+  offsetCap = { active: true, t0: 0, lo: 0, hi: 0, sum: 0, n: 0, steady, tol };
+  setBanner("rest", "Hang still…", "");
+  voice.say("Hang from the scale and stay still", true);
+}
+function offsetCaptureFeed(raw: number) {
+  const c = offsetCap; if (!c || !c.active) return;
+  const now = Date.now();
+  if (c.n === 0 || raw < c.lo - c.tol || raw > c.hi + c.tol || raw < 1) {
+    // reading moved (or hook empty): restart the window
+    c.t0 = now; c.lo = raw; c.hi = raw; c.sum = raw; c.n = raw >= 1 ? 1 : 0;
+    $("phaseTime").textContent = "";
+    return;
+  }
+  c.lo = Math.min(c.lo, raw); c.hi = Math.max(c.hi, raw); c.sum += raw; c.n++;
+  const held = (now - c.t0) / 1000;
+  $("phaseTime").textContent = `${Math.max(0, c.steady - held).toFixed(1)}`;
+  setBanner("rest", `Steady ${raw.toFixed(1)} kg`, `${Math.max(0, c.steady - held).toFixed(1)}`);
+  if (held >= c.steady) {
+    c.active = false;
+    const avg = Math.round((c.sum / c.n) * 10) / 10;
+    if (beepOn) sounds.go();
+    voice.say(`Offset ${avg.toFixed(1)} kilograms?`, true);
+    const ok = confirm(`Steady for ${c.steady}s at ${avg.toFixed(1)} kg.\nUse ${avg.toFixed(1)} kg as the offset for ${$<HTMLSelectElement>("exercise").value}?`);
+    if (ok) {
+      $<HTMLInputElement>("offsetKg").value = avg.toFixed(1);
+      localStorage.setItem(`ufl.offset.${$<HTMLSelectElement>("exercise").value}`, String(avg));
+      setBanner("rest", `Offset set: ${avg.toFixed(1)} kg`, "");
+    } else setBanner("rest", "Offset not changed", "");
+    offsetCaptureEnd();
+  }
+}
+function offsetCaptureEnd() {
+  offsetCap = null;
+  $("btnStop").classList.add("hidden"); $("btnStart").classList.remove("hidden");
+  lockInputs(false);
+}
 
 // ---------- header ----------
 function handleValue() { const v = $<HTMLSelectElement>("handle").value; return v === "__custom" ? "" : v; }
@@ -170,6 +212,7 @@ async function connect(src: ForceSource) {
   src.onStatus(setStatus);
   src.onSample((raw) => {
     rawKg = raw.kg;
+    if (offsetCap?.active) { offsetCaptureFeed(raw.kg); return; }
     // user offset (e.g. body weight when hanging) is removed from every reading, floored at 0
     const off = offsetValue();
     const s = off ? { ...raw, kg: Math.max(0, raw.kg - off) } : raw;
@@ -257,7 +300,7 @@ let preTimer: ReturnType<typeof setInterval> | null = null;
 /** Start set = optional spoken countdown, then the real set. */
 function startSet() {
   const n = Math.max(0, Math.floor(Number($<HTMLInputElement>("preCount").value) || 0));
-  if (!n) { beginSet(); return; }
+  if (!n || $<HTMLSelectElement>("protocol").value === "offset") { beginSet(); return; }
   voice.unlock();
   $("btnStart").classList.add("hidden"); $("btnStop").classList.remove("hidden"); $("btnStop").textContent = "Cancel";
   lockInputs(true);
@@ -283,6 +326,15 @@ function cancelCountdown() {
 function beginSet() {
   lastFinished = null;
   const pid = $<HTMLSelectElement>("protocol").value;
+  if (pid === "offset") {
+    if (!source) { alert("Connect the scale (or the simulator) first."); return; }
+    const pr = readParams();
+    $("summary").classList.add("hidden");
+    $("btnStart").classList.add("hidden"); $("btnStop").classList.remove("hidden");
+    lockInputs(true);
+    offsetCaptureStart(Math.max(1, pr.steady || 5), Math.max(0.1, pr.tol || 1));
+    return;
+  }
   const proto = buildProtocol(pid, readParams());
   $("summary").classList.add("hidden");
   recorder.start();
@@ -325,6 +377,7 @@ function onTick(remaining: number, ph: Phase) {
 
 async function stopSet() {
   if (cancelCountdown()) return;
+  if (offsetCap) { offsetCaptureEnd(); setBanner("rest", "Offset capture cancelled", ""); return; }
   runner.stop();
   stopCallouts();
   const ex = $<HTMLSelectElement>("exercise").value;
