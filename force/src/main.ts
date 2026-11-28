@@ -45,14 +45,14 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
   countdown: [{ key: "total", label: "seconds", def: 60 }],
   ramp: [{ key: "ramp", label: "ramp s", def: 5 }, { key: "hold", label: "hold s", def: 10 }],
   repeaters: [{ key: "reps", label: "reps", def: 6 }, { key: "hold", label: "on s", def: 10 }, { key: "rest", label: "off s", def: 20 }],
-  offset: [{ key: "steady", label: "steady for s", def: 5 }, { key: "tol", label: "± kg", def: 1 }],
+  offset: [{ key: "steady", label: "steady for s", def: 5 }, { key: "tol", label: "± kg", def: 0.5 }],
 };
 
 // ---------- offset capture mode ----------
 // Watches the RAW reading; once it stays within ±tol for `steady` seconds, proposes it as the offset.
-let offsetCap: { active: boolean; t0: number; lo: number; hi: number; sum: number; n: number; steady: number; tol: number } | null = null;
+let offsetCap: { active: boolean; t0: number; lo: number; hi: number; sum: number; n: number; steady: number; tol: number; spoken: number } | null = null;
 function offsetCaptureStart(steady: number, tol: number) {
-  offsetCap = { active: true, t0: 0, lo: 0, hi: 0, sum: 0, n: 0, steady, tol };
+  offsetCap = { active: true, t0: 0, lo: 0, hi: 0, sum: 0, n: 0, steady, tol, spoken: -1 };
   setBanner("rest", "Hang still…", "");
   voice.say("Hang from the scale and stay still", true);
 }
@@ -61,14 +61,19 @@ function offsetCaptureFeed(raw: number) {
   const now = Date.now();
   if (c.n === 0 || raw < c.lo - c.tol || raw > c.hi + c.tol || raw < 1) {
     // reading moved (or hook empty): restart the window
-    c.t0 = now; c.lo = raw; c.hi = raw; c.sum = raw; c.n = raw >= 1 ? 1 : 0;
-    $("phaseTime").textContent = "";
+    const wasCounting = c.n > 0 && (now - c.t0) / 1000 >= 1;
+    c.t0 = now; c.lo = raw; c.hi = raw; c.sum = raw; c.n = raw >= 1 ? 1 : 0; c.spoken = -1;
+    setBanner("rest", raw < 1 ? "Hang from the scale…" : "Moved — hold still", "");
+    if (wasCounting) voice.say("Moved. Hold still", true);
     return;
   }
   c.lo = Math.min(c.lo, raw); c.hi = Math.max(c.hi, raw); c.sum += raw; c.n++;
   const held = (now - c.t0) / 1000;
-  $("phaseTime").textContent = `${Math.max(0, c.steady - held).toFixed(1)}`;
-  setBanner("rest", `Steady ${raw.toFixed(1)} kg`, `${Math.max(0, c.steady - held).toFixed(1)}`);
+  const left = Math.max(0, c.steady - held);
+  setBanner("rest", `Steady ${raw.toFixed(1)} kg`, `${left.toFixed(1)}`);
+  // spoken countdown so you can keep your eyes off the phone
+  const sec = Math.ceil(left);
+  if (sec !== c.spoken && sec > 0) { c.spoken = sec; voice.say(String(sec), true); if (beepOn) sounds.tick(); }
   if (held >= c.steady) {
     c.active = false;
     const avg = Math.round((c.sum / c.n) * 10) / 10;
@@ -163,13 +168,15 @@ function fillExerciseSelects() {
 function renderParams() {
   const pid = $<HTMLSelectElement>("protocol").value;
   const box = $("params");
-  box.innerHTML = (PARAMS[pid] ?? []).map((p) => `<label>${p.label}<input type="number" data-k="${p.key}" value="${p.def}" min="1" /></label>`).join("");
+  const saved: Record<string, number> = JSON.parse(localStorage.getItem(`ufl.params.${pid}`) ?? "{}");
+  box.innerHTML = (PARAMS[pid] ?? []).map((p) => `<label>${p.label}<input type="number" data-k="${p.key}" value="${saved[p.key] ?? p.def}" min="${p.key === "tol" ? 0.1 : 1}" step="${p.key === "tol" ? 0.1 : 1}" /></label>`).join("");
+  box.querySelectorAll<HTMLInputElement>("input").forEach((i) => (i.oninput = () => { localStorage.setItem(`ufl.params.${pid}`, JSON.stringify(readParams())); $("protocolHelp").textContent = buildProtocol(pid, readParams()).describe; }));
   $("protocolHelp").textContent = buildProtocol(pid, readParams()).describe;
 }
 
 function readParams(): Record<string, number> {
   const out: Record<string, number> = {};
-  $("params").querySelectorAll<HTMLInputElement>("input").forEach((i) => (out[i.dataset.k!] = Number(i.value) || 1));
+  $("params").querySelectorAll<HTMLInputElement>("input").forEach((i) => (out[i.dataset.k!] = Number(i.value) || (i.dataset.k === "tol" ? 0.5 : 1)));
   return out;
 }
 
