@@ -808,7 +808,7 @@ class zn extends an {
     this.emitRaw(s);
   }
 }
-const Gn = { both: "", left: "Left", right: "Right" }, Yn = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
+const Gn = { both: "", left: "Left", right: "Right", altLR: "Alt L→R", altRL: "Alt R→L" }, Yn = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
 function Ce(t, e, n, s, i, a) {
   const o = [s?.trim() ?? "", Gn[e] ?? "", Yn[n ?? "complete"] ?? "", (i ?? 0) > 1 ? `${i} links` : "", a ? `+${a} kg` : ""].filter(Boolean);
   return o.length ? `${t} — ${o.join(", ")}` : t;

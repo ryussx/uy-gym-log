@@ -2,7 +2,7 @@
 import type { ForceSample } from "./scale";
 
 export type Contraction = "complete" | "concentric" | "eccentric";
-export const SIDE_LABEL: Record<string, string> = { both: "", left: "Left", right: "Right" };
+export const SIDE_LABEL: Record<string, string> = { both: "", left: "Left", right: "Right", altLR: "Alt L→R", altRL: "Alt R→L" };
 export const CONTRACTION_LABEL: Record<string, string> = { complete: "", concentric: "Concentric", eccentric: "Eccentric" };
 /** Display name with how it was performed, e.g. "SR Chest Press — Right, Eccentric". */
 export function displayName(exercise: string, side: string, contraction?: string, handle?: string, links?: number, extKg?: number) {
@@ -25,7 +25,7 @@ export function sameVariant(s: SetRecord, exercise: string, side: string, contra
 export interface SetRecord {
   id: string;
   exercise: string;
-  side: "both" | "left" | "right";
+  side: "both" | "left" | "right" | "altLR" | "altRL";
   contraction?: Contraction; // undefined = complete
   handle?: string; // bar, rings, straps… (empty = unspecified)
   links?: number; // connectors (carabiners, hooks, shackles) in the rig; 0 = unspecified
