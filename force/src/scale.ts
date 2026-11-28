@@ -98,6 +98,14 @@ export interface SeenDevice { id: string; name: string; rssi: number; keys: stri
 
 export class BleScale extends BaseSource {
   readonly name = "WeiHeng scale";
+  /** Device id to use; null = lock onto the first scale that produces a reading. */
+  preferredId: string | null = null;
+  /** The device we're currently taking readings from. */
+  activeId: string | null = null;
+  activeName = "";
+  onDevice: (id: string, name: string) => void = () => {};
+  /** Switch to another device (or back to auto with null). */
+  useDevice(id: string | null) { this.preferredId = id; this.activeId = null; this.activeName = ""; }
   private scanning = false;
   /** Last few devices heard, for the debug panel. */
   seen = new Map<string, SeenDevice>();
@@ -149,6 +157,10 @@ export class BleScale extends BaseSource {
         const d: SeenDevice = { id: r.device.deviceId, name, rssi: r.rssi ?? 0, keys: keys.join(","), hex: payload ? hex(payload) : (r.rawAdvertisement ? hex(r.rawAdvertisement).slice(0, 60) : ""), kg, t: Date.now() };
         this.seen.set(d.id, d); this.onSeen(d);
         if (kg === null) return;
+        // several scales may be on at once: take readings from one device only
+        if (this.preferredId) { if (d.id !== this.preferredId) return; }
+        else if (this.activeId && d.id !== this.activeId) return;
+        if (this.activeId !== d.id) { this.activeId = d.id; this.activeName = name || d.id; this.onDevice(d.id, this.activeName); }
         this.lastPacketAt = Date.now();
         this.emitRaw(kg);
       },

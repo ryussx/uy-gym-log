@@ -247,7 +247,7 @@ function setStatus(s: ScaleStatus) {
   const labels: Record<ScaleStatus, string> = {
     idle: "Not connected",
     scanning: "Listening…",
-    live: "",
+    live: source instanceof BleScale && source.activeName ? scaleLabel(source.activeName) : "",
     lost: "Lost — retrying…",
     error: "Error",
   };
@@ -666,6 +666,15 @@ function bindUI() {
   $("hdrExercise").onclick = () => { if (!recorder.recording) openPickerFor($<HTMLSelectElement>("exercise")); };
   for (const id of ["exercise", "side", "protocol", "contraction", "handle", "links", "extKg"]) $(id).addEventListener("change", updateHeader);
   updateHeader();
+  // scale chooser (Settings → Scale)
+  const knownScales: Record<string, string> = JSON.parse(localStorage.getItem("ufl.scales") ?? "{}");
+  $<HTMLSelectElement>("scaleSel").innerHTML = `<option value="">Auto — first scale heard</option>` + Object.entries(knownScales).map(([id, nm]) => `<option value="${esc(id)}">${esc(scaleLabel(nm))} · ${esc(nm)} (${esc(id.slice(-5))})</option>`).join("");
+  $<HTMLSelectElement>("scaleSel").value = localStorage.getItem("ufl.scaleId") ?? "";
+  $("scaleSel").onchange = () => {
+    const v = $<HTMLSelectElement>("scaleSel").value;
+    if (v) localStorage.setItem("ufl.scaleId", v); else localStorage.removeItem("ufl.scaleId");
+    if (source instanceof BleScale) { source.useDevice(v || null); setStatus("scanning"); }
+  };
   $("btnConnect").onclick = async () => {
     if (source instanceof BleScale && (curStatus === "live" || curStatus === "scanning")) {
       await source.stop(); source = null; setStatus("idle"); manualOff = true; return;
@@ -673,7 +682,9 @@ function bindUI() {
     manualOff = false;
     $("simPanel").classList.add("hidden"); sim = null;
     const b = new BleScale();
-    b.onSeen = () => renderSeen(b);
+    b.onSeen = () => { renderSeen(b); renderScaleList(b); };
+    b.preferredId = localStorage.getItem("ufl.scaleId") || null;
+    b.onDevice = (_id, nm) => { $("statusText").textContent = scaleLabel(nm); renderScaleList(b); };
     connect(b);
   };
   $("btnSim").onclick = () => { sim = new SimScale(); sim.exact = $<HTMLInputElement>("simExact").checked; $("simPanel").classList.remove("hidden"); connect(sim); };
@@ -842,6 +853,19 @@ function bindUI() {
   };
 }
 
+function scaleLabel(nm: string) { return /^(UY|IF_ISO)/i.test(nm) ? "ESP32 scale" : nm || "scale"; }
+let scaleListAt = 0;
+function renderScaleList(b: BleScale) {
+  const now = Date.now(); if (now - scaleListAt < 1000) return; scaleListAt = now;
+  const sel = $<HTMLSelectElement>("scaleSel");
+  const pref = localStorage.getItem("ufl.scaleId") ?? "";
+  const devs = [...b.seen.values()].filter((d) => d.kg !== null);
+  const known: Record<string, string> = JSON.parse(localStorage.getItem("ufl.scales") ?? "{}");
+  for (const d of devs) known[d.id] = d.name || d.id;
+  localStorage.setItem("ufl.scales", JSON.stringify(known));
+  sel.innerHTML = `<option value="">Auto — first scale heard</option>` + Object.entries(known).map(([id, nm]) => `<option value="${esc(id)}">${esc(scaleLabel(nm))} · ${esc(nm)} (${esc(id.slice(-5))})${b.activeId === id ? " — active" : ""}</option>`).join("");
+  sel.value = pref;
+}
 let seenRenderAt = 0;
 function renderSeen(b: BleScale) {
   const now = Date.now();
