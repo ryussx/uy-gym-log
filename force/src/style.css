@@ -144,3 +144,29 @@ h3 { margin: 18px 0 6px; font-size: 15px; color: var(--muted); text-transform: u
 
 input, select, textarea { font-size: 16px; }
 input[type="date"], input[type="range"] { font-size: 16px; }
+
+/* ---------- landscape: chart left, numbers right ---------- */
+@media (orientation: landscape) and (max-height: 600px) {
+  .fl-top { flex-direction: row; align-items: center; gap: 10px; padding-top: calc(4px + env(safe-area-inset-top)); padding-bottom: 4px; }
+  .fl-top .hdr-ex { flex: 1 1 auto; min-width: 0; font-size: 16px; }
+  .fl-top .conn { flex: 0 0 auto; max-width: 60%; }
+  #tab-train.fl-tab.active { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 10px; align-items: start; grid-auto-flow: dense; }
+  #tab-train.fl-tab.active > * { grid-column: 2; margin-top: 0; margin-bottom: 6px; }
+  /* right column order: banner, live kg, stats, start, countdown, summary — then the selectors */
+  #tab-train.fl-tab.active > .banner { grid-row: 1; }
+  #tab-train.fl-tab.active > .live { grid-column: 2; grid-row: 2; }
+  #tab-train.fl-tab.active > .stats { grid-row: 3; }
+  #tab-train.fl-tab.active > .actions { grid-row: 4; }
+  #tab-train.fl-tab.active > .row:has(#preCount) { grid-row: 5; justify-content: flex-start; }
+  #tab-train.fl-tab.active > .row:has(#preCount) label.inline { flex-direction: row; align-items: center; min-width: 0; }
+  #tab-train.fl-tab.active > #summary { grid-row: 6; }
+  #tab-train.fl-tab.active > .chartwrap { grid-column: 1; grid-row: 1 / span 40; --chart-fill: 1; height: calc(100vh - 118px); box-sizing: border-box; margin: 0; }
+  #tab-train.fl-tab.active > .live .bigkg { font-size: 40px; }
+  #tab-train.fl-tab.active > .stats { gap: 4px; }
+  #tab-train.fl-tab.active > .stats .stat { padding: 5px 8px; }
+  #tab-train.fl-tab.active > .stats .stat .v { font-size: 17px; }
+  #tab-train.fl-tab.active > .banner { padding: 6px 10px; }
+  #tab-train.fl-tab.active > .banner .phase { font-size: 16px; }
+  #tab-train.fl-tab.active > .banner .countdown { font-size: 20px; }
+  #tab-train.fl-tab.active > .actions .big { padding: 10px; font-size: 16px; }
+}

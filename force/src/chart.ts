@@ -23,7 +23,9 @@ export class ForceChart {
   resize() {
     const parent = this.canvas.parentElement ?? this.canvas;
     const w = parent.clientWidth || 320;
-    const h = Math.max(220, Math.min(380, Math.round(w * 0.6)));
+    // landscape layouts give the wrapper an explicit height (flagged by --chart-fill) and the canvas fills it
+    const fill = getComputedStyle(parent).getPropertyValue("--chart-fill").trim() === "1";
+    const h = fill ? Math.max(140, parent.clientHeight - 12) : Math.max(220, Math.min(380, Math.round(w * 0.6)));
     this.canvas.width = w * this.dpr;
     this.canvas.height = h * this.dpr;
     this.canvas.style.width = `${w}px`;

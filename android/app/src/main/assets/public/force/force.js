@@ -903,8 +903,8 @@ class en {
     this.canvas = e, this.dpr = Math.max(1, window.devicePixelRatio || 1), this.opts = { windowS: 60, zone: null, ghost: null, marks: [] }, this.last = null, this.ctx = e.getContext("2d"), this.resize(), new ResizeObserver(() => this.resize()).observe(e.parentElement ?? e);
   }
   resize() {
-    const n = (this.canvas.parentElement ?? this.canvas).clientWidth || 320, s = Math.max(220, Math.min(380, Math.round(n * 0.6)));
-    this.canvas.width = n * this.dpr, this.canvas.height = s * this.dpr, this.canvas.style.width = `${n}px`, this.canvas.style.height = `${s}px`, this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0), this.last && this.render(...this.last);
+    const e = this.canvas.parentElement ?? this.canvas, n = e.clientWidth || 320, i = getComputedStyle(e).getPropertyValue("--chart-fill").trim() === "1" ? Math.max(140, e.clientHeight - 12) : Math.max(220, Math.min(380, Math.round(n * 0.6)));
+    this.canvas.width = n * this.dpr, this.canvas.height = i * this.dpr, this.canvas.style.width = `${n}px`, this.canvas.style.height = `${i}px`, this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0), this.last && this.render(...this.last);
   }
   draw(e, n, s) {
     this.last = [e, n, s], this.render(e, n, s);
