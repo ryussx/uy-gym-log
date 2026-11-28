@@ -21,7 +21,7 @@ export function toHostSet(s: SetRecord): HostSet {
     id: `fl-${s.id}`, date: isoDate(performedAt(s)), exercise: displayName(s.exercise, s.side, s.contraction, s.handle, s.links, s.extKg), kg: s.peak, reps: repsFor(s),
     variation: variationFor(s.exercise),
     at: s.startedAt, dur: s.durationS,
-    note: [s.extKg ? `external load ${s.extKg} kg` : "", s.mode, s.note].filter(Boolean).join(" · "),
+    note: [s.extKg ? `external load ${s.extKg} kg` : "", s.offsetKg ? `offset ${s.offsetKg} kg` : "", s.mode, s.note].filter(Boolean).join(" · "),
   };
 }
 

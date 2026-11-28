@@ -50,6 +50,8 @@ const PARAMS: Record<string, { key: string; label: string; def: number }[]> = {
 // ---------- header ----------
 function handleValue() { const v = $<HTMLSelectElement>("handle").value; return v === "__custom" ? "" : v; }
 function linksValue() { return Math.max(1, Math.floor(Number($<HTMLSelectElement>("links").value) || 1)); }
+let rawKg = 0;
+function offsetValue() { return Math.max(0, Math.round((Number($<HTMLInputElement>("offsetKg").value) || 0) * 10) / 10); }
 function extKgValue() { return Math.max(0, Math.round((Number($<HTMLInputElement>("extKg").value) || 0) * 2) / 2); }
 function updateHeader() {
   const ex = $<HTMLSelectElement>("exercise").value || "Choose exercise";
@@ -166,9 +168,13 @@ async function connect(src: ForceSource) {
   if (source) await source.stop();
   source = src;
   src.onStatus(setStatus);
-  src.onSample((s) => {
+  src.onSample((raw) => {
+    rawKg = raw.kg;
+    // user offset (e.g. body weight when hanging) is removed from every reading, floored at 0
+    const off = offsetValue();
+    const s = off ? { ...raw, kg: Math.max(0, raw.kg - off) } : raw;
     liveKg = s.kg;
-    if (curStatus === "live") $("statusKg").textContent = `${s.kg.toFixed(1)} kg`;
+    if (curStatus === "live") $("statusKg").textContent = off ? `${s.kg.toFixed(1)} kg (raw ${raw.kg.toFixed(1)})` : `${s.kg.toFixed(1)} kg`;
     recorder.push(s);
     zoneFeedback(s.kg);
   });
@@ -325,7 +331,7 @@ async function stopSet() {
   const side = $<HTMLSelectElement>("side").value as SetRecord["side"];
   const mode = $<HTMLSelectElement>("protocol").value;
   const contraction = $<HTMLSelectElement>("contraction").value as Contraction;
-  const rec = recorder.finish({ exercise: ex, side, mode, contraction, handle: handleValue(), links: linksValue(), extKg: extKgValue() });
+  const rec = recorder.finish({ exercise: ex, side, mode, contraction, handle: handleValue(), links: linksValue(), extKg: extKgValue(), offsetKg: offsetValue() });
   // default the logged reps to the auto-detected count; the user can change it before/after saving
   if (rec && rec.manualReps === undefined && (rec.reps?.length ?? 0) >= 2) rec.manualReps = rec.reps!.length;
   lastFinished = rec; // Train chart now shows the whole set
@@ -376,7 +382,7 @@ function startCallouts() {
 function stopCallouts() { if (secTimer) clearInterval(secTimer); secTimer = null; }
 
 function lockInputs(lock: boolean) {
-  for (const id of ["exercise", "side", "protocol", "contraction", "handle", "links", "extKg", "preCount"]) ($(id) as HTMLSelectElement).disabled = lock;
+  for (const id of ["exercise", "side", "protocol", "contraction", "handle", "links", "extKg", "offsetKg", "preCount"]) ($(id) as HTMLSelectElement).disabled = lock;
 }
 
 function setBanner(cue: string, name: string, time: string) {
@@ -393,6 +399,7 @@ async function showSummary(rec: SetRecord) {
   const other = rec.side === "left" ? "right" : rec.side === "right" ? "left" : null;
   const lines: string[] = [];
   if (rec.extKg) lines.push(line("External load", `+${rec.extKg} kg (not measured by the scale)`));
+  if (rec.offsetKg) lines.push(line("Offset", `−${rec.offsetKg} kg subtracted from every reading`));
   lines.push(line("Duration", `${rec.durationS.toFixed(1)} s`));
   lines.push(line("Peak force", `${fmt(rec.peak)} kg`, delta(rec.peak, prev?.peak)));
   lines.push(line("Intensity (avg)", `${fmt(rec.avg)} kg`, delta(rec.avg, prev?.avg)));
@@ -687,6 +694,17 @@ function bindUI() {
   const loadLinks = () => { $<HTMLSelectElement>("links").value = String(Math.min(8, linksFor($<HTMLSelectElement>("exercise").value))); };
   $("exercise").addEventListener("change", () => { loadLinks(); updateHeader(); });
   $("extKg").oninput = () => { updateHeader(); refreshExerciseContext(); };
+  // offset: remembered per exercise; "Set from current" captures the live raw reading
+  const offsetFor = (ex: string) => Number(localStorage.getItem(`ufl.offset.${ex}`) ?? "0") || 0;
+  const loadOffset = () => { $<HTMLInputElement>("offsetKg").value = String(offsetFor($<HTMLSelectElement>("exercise").value)); };
+  $("exercise").addEventListener("change", loadOffset);
+  setTimeout(loadOffset, 0);
+  $("offsetKg").oninput = () => localStorage.setItem(`ufl.offset.${$<HTMLSelectElement>("exercise").value}`, String(offsetValue()));
+  $("btnOffsetNow").onclick = () => {
+    if (curStatus !== "live" && !sim) { alert("Connect the scale (or the simulator) first, then hang from it and tap again."); return; }
+    $<HTMLInputElement>("offsetKg").value = (Math.round(rawKg * 10) / 10).toFixed(1);
+    localStorage.setItem(`ufl.offset.${$<HTMLSelectElement>("exercise").value}`, String(offsetValue()));
+  };
   $("links").onchange = () => { localStorage.setItem(`ufl.links.${$<HTMLSelectElement>("exercise").value}`, String(linksValue())); updateHeader(); refreshExerciseContext(); };
   setTimeout(loadLinks, 0);
   $<HTMLInputElement>("preCount").value = localStorage.getItem("ufl.preCount") ?? "10";

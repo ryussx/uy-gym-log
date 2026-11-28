@@ -30,6 +30,7 @@ export interface SetRecord {
   handle?: string; // bar, rings, straps… (empty = unspecified)
   links?: number; // connectors (carabiners, hooks, shackles) in the rig; 0 = unspecified
   extKg?: number; // external load worn/held (vest, belt), separate from scale force
+  offsetKg?: number; // subtracted from every reading (e.g. body weight when hanging)
   mode: string; // free | hold | ramp | reps | maxtest | critical
   startedAt: number;
   durationS: number;
@@ -86,7 +87,7 @@ export class SetRecorder {
     return this.samples;
   }
 
-  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string; contraction?: Contraction; handle?: string; links?: number; extKg?: number }): SetRecord | null {
+  finish(meta: { exercise: string; side: SetRecord["side"]; mode: string; contraction?: Contraction; handle?: string; links?: number; extKg?: number; offsetKg?: number }): SetRecord | null {
     this.recording = false;
     const s = this.samples;
     if (s.length < 3) return null;
@@ -99,6 +100,7 @@ export class SetRecorder {
       handle: meta.handle?.trim() || undefined,
       links: meta.links || undefined,
       extKg: meta.extKg || undefined,
+      offsetKg: meta.offsetKg || undefined,
       mode: meta.mode,
       startedAt: this.t0,
       durationS: s[s.length - 1].t,
