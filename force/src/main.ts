@@ -225,11 +225,11 @@ async function connect(src: ForceSource) {
     // live readout shows the signed value (e.g. −18 with an empty hook) so you can see the offset is active;
     // the recorded force curve and metrics are floored at 0
     const signed = raw.kg - off;
-    const s = off ? { ...raw, kg: Math.max(0, signed) } : raw;
-    liveKg = off ? signed : s.kg;
+    const s = off ? { ...raw, kg: signed } : raw; // signed: the chart shows how far below zero it goes
+    liveKg = s.kg;
     if (curStatus === "live") $("statusKg").textContent = off ? `${signed.toFixed(1)} kg (raw ${raw.kg.toFixed(1)})` : `${s.kg.toFixed(1)} kg`;
     recorder.push(s);
-    zoneFeedback(s.kg);
+    zoneFeedback(Math.max(0, s.kg));
   });
   try {
     await src.start();
@@ -463,6 +463,7 @@ async function showSummary(rec: SetRecord) {
   const lines: string[] = [];
   if (rec.extKg) lines.push(line("External load", `+${rec.extKg} kg (not measured by the scale)`));
   if (rec.offsetKg) lines.push(line("Offset", `−${rec.offsetKg} kg subtracted from every reading`));
+  if (rec.low !== undefined && rec.low < 0) lines.push(line("Lowest reading", `${rec.low.toFixed(1)} kg — the other arm carried ${(-rec.low).toFixed(1)} kg more than the offset`));
   lines.push(line("Duration", `${rec.durationS.toFixed(1)} s`));
   lines.push(line("Peak force", `${fmt(rec.peak)} kg`, delta(rec.peak, prev?.peak)));
   lines.push(line("Intensity (avg)", `${fmt(rec.avg)} kg`, delta(rec.avg, prev?.avg)));
@@ -540,7 +541,7 @@ function drawLoop() {
   const el = recorder.recording ? recorder.elapsed() : (lastFinished?.durationS ?? recorder.elapsed());
   $("liveKg").textContent = liveKg.toFixed(1);
   $("elapsed").textContent = fmtT(el);
-  chart.draw(samples, el, Math.max(0, liveKg));
+  chart.draw(samples, el, liveKg);
   if (recorder.recording && samples.length > 2) {
     const m = computeMetrics(samples);
     $("sPeak").textContent = fmt(m.peak);
@@ -548,7 +549,7 @@ function drawLoop() {
     $("sOut").textContent = fmt(m.output);
     $("sInroad").textContent = `${m.inroad.toFixed(0)}%`;
     const p = lastSetForExercise;
-    $("dPeak").innerHTML = delta(m.peak, p?.peak);
+    $("dPeak").innerHTML = m.low < 0 ? `<span class="muted">low ${m.low.toFixed(1)} kg</span> ${delta(m.peak, p?.peak)}` : delta(m.peak, p?.peak);
     $("dAvg").innerHTML = delta(m.avg, p?.avg);
     $("dOut").innerHTML = bestOutputForExercise ? `<span class="muted">${((m.output / bestOutputForExercise) * 100).toFixed(0)}% of goal</span>` : "";
     const reps = detectReps(samples);

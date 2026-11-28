@@ -31,6 +31,7 @@ export interface SetRecord {
   links?: number; // connectors (carabiners, hooks, shackles) in the rig; 0 = unspecified
   extKg?: number; // external load worn/held (vest, belt), separate from scale force
   offsetKg?: number; // subtracted from every reading (e.g. body weight when hanging)
+  low?: number; // lowest (most negative) reading in the set, only meaningful with an offset
   mode: string; // free | hold | ramp | reps | maxtest | critical
   startedAt: number;
   durationS: number;
@@ -112,8 +113,9 @@ export class SetRecorder {
 }
 
 export function computeMetrics(s: { t: number; kg: number }[]) {
-  let peak = 0, sum = 0, output = 0;
+  let peak = 0, sum = 0, output = 0, low = 0;
   for (let i = 0; i < s.length; i++) {
+    low = Math.min(low, s[i].kg); // most negative reading (offset mode: how much the other arm carried)
     const kg = Math.max(0, s[i].kg);
     peak = Math.max(peak, kg);
     sum += kg;
@@ -129,7 +131,7 @@ export function computeMetrics(s: { t: number; kg: number }[]) {
     const late = Math.max(...active.slice(-n).map((p) => p.kg));
     inroad = early > 0 ? Math.max(0, ((early - late) / early) * 100) : 0;
   }
-  return { peak: r2(peak), avg: r2(avg), output: r2(output), inroad: r2(inroad) };
+  return { peak: r2(peak), avg: r2(avg), output: r2(output), inroad: r2(inroad), low: r2(low) };
 }
 
 /** Split a set into reps by finding stretches where force rises above a threshold. */

@@ -60,9 +60,15 @@ export class ForceChart {
     for (const p of ghost) maxKg = Math.max(maxKg, p.kg);
     if (this.opts.zone) maxKg = Math.max(maxKg, this.opts.zone.hi);
     maxKg = niceCeil(maxKg * 1.1);
+    // negative readings (offset mode: assisting arm) extend the axis below zero
+    let minKg = 0;
+    for (const p of samples) minKg = Math.min(minKg, p.kg);
+    for (const p of ghost) minKg = Math.min(minKg, p.kg);
+    if (minKg < 0) minKg = -niceCeil(-minKg * 1.1);
+    const span = maxKg - minKg;
 
     const x = (t: number) => padL + (t / windowS) * pw;
-    const y = (kg: number) => padT + ph - (Math.max(0, kg) / maxKg) * ph;
+    const y = (kg: number) => padT + ph - ((kg - minKg) / span) * ph;
 
     // zone band
     if (this.opts.zone) {
@@ -75,11 +81,18 @@ export class ForceChart {
     ctx.strokeStyle = cGrid; ctx.lineWidth = 1; ctx.fillStyle = cText;
     ctx.font = "11px system-ui, sans-serif"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
     const ySteps = 5;
-    for (let i = 0; i <= ySteps; i++) {
-      const v = (maxKg / ySteps) * i; const yy = y(v);
+    const step = maxKg / ySteps;
+    for (let v = 0; v <= maxKg + 1e-6; v += step) {
+      const yy = y(v);
       ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
       ctx.fillText(v.toFixed(0), padL - 6, yy);
     }
+    for (let v = -step; v >= minKg - 1e-6; v -= step) {
+      const yy = y(v);
+      ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
+      ctx.fillText(v.toFixed(0), padL - 6, yy);
+    }
+    if (minKg < 0) { ctx.save(); ctx.strokeStyle = cText; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(padL, y(0)); ctx.lineTo(W - padR, y(0)); ctx.stroke(); ctx.restore(); }
     ctx.textAlign = "center"; ctx.textBaseline = "top";
     const xStep = windowS <= 30 ? 5 : windowS <= 90 ? 10 : 30;
     for (let t = 0; t <= windowS; t += xStep) {
