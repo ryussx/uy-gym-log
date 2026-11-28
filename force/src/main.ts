@@ -222,9 +222,12 @@ async function connect(src: ForceSource) {
     if (offsetCap?.active) { offsetCaptureFeed(raw.kg); return; }
     // user offset (e.g. body weight when hanging) is removed from every reading, floored at 0
     const off = offsetValue();
-    const s = off ? { ...raw, kg: Math.max(0, raw.kg - off) } : raw;
-    liveKg = s.kg;
-    if (curStatus === "live") $("statusKg").textContent = off ? `${s.kg.toFixed(1)} kg (raw ${raw.kg.toFixed(1)})` : `${s.kg.toFixed(1)} kg`;
+    // live readout shows the signed value (e.g. −18 with an empty hook) so you can see the offset is active;
+    // the recorded force curve and metrics are floored at 0
+    const signed = raw.kg - off;
+    const s = off ? { ...raw, kg: Math.max(0, signed) } : raw;
+    liveKg = off ? signed : s.kg;
+    if (curStatus === "live") $("statusKg").textContent = off ? `${signed.toFixed(1)} kg (raw ${raw.kg.toFixed(1)})` : `${s.kg.toFixed(1)} kg`;
     recorder.push(s);
     zoneFeedback(s.kg);
   });
@@ -537,7 +540,7 @@ function drawLoop() {
   const el = recorder.recording ? recorder.elapsed() : (lastFinished?.durationS ?? recorder.elapsed());
   $("liveKg").textContent = liveKg.toFixed(1);
   $("elapsed").textContent = fmtT(el);
-  chart.draw(samples, el, liveKg);
+  chart.draw(samples, el, Math.max(0, liveKg));
   if (recorder.recording && samples.length > 2) {
     const m = computeMetrics(samples);
     $("sPeak").textContent = fmt(m.peak);

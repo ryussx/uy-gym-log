@@ -1599,8 +1599,8 @@ async function kt(t) {
       fs(e.kg);
       return;
     }
-    const n = Ze(), s = n ? { ...e, kg: Math.max(0, e.kg - n) } : e;
-    Je = s.kg, Y === "live" && (r("statusKg").textContent = n ? `${s.kg.toFixed(1)} kg (raw ${e.kg.toFixed(1)})` : `${s.kg.toFixed(1)} kg`), q.push(s), ms(s.kg);
+    const n = Ze(), s = e.kg - n, i = n ? { ...e, kg: Math.max(0, s) } : e;
+    Je = n ? s : i.kg, Y === "live" && (r("statusKg").textContent = n ? `${s.toFixed(1)} kg (raw ${e.kg.toFixed(1)})` : `${i.kg.toFixed(1)} kg`), q.push(i), ms(i.kg);
   });
   try {
     await t.start(), r("btnTare").disabled = !1, r("btnStart").disabled = !1;
@@ -1800,7 +1800,7 @@ function _e(t, e) {
 }
 function kn() {
   const t = q.current(), e = q.recording ? q.elapsed() : $t?.durationS ?? q.elapsed();
-  if (r("liveKg").textContent = Je.toFixed(1), r("elapsed").textContent = Ln(e), z.draw(t, e, Je), q.recording && t.length > 2) {
+  if (r("liveKg").textContent = Je.toFixed(1), r("elapsed").textContent = Ln(e), z.draw(t, e, Math.max(0, Je)), q.recording && t.length > 2) {
     const n = nn(t);
     r("sPeak").textContent = P(n.peak), r("sAvg").textContent = P(n.avg), r("sOut").textContent = P(n.output), r("sInroad").textContent = `${n.inroad.toFixed(0)}%`;
     const s = oe;
